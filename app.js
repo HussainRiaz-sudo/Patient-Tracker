@@ -79,37 +79,43 @@ const APPS_SCRIPT_CODE = `function doPost(e) {
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Initialize Lucide Icons
-    if (window.lucide) {
-        window.lucide.createIcons();
+    try {
+        // 1. Initialize Lucide Icons
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+
+        // 2. Set default date to today
+        const todayStr = getTodayLocalDateString();
+        const dateInput = document.getElementById('entry-date');
+        if (dateInput) {
+            dateInput.value = todayStr;
+            dateInput.max = todayStr;
+        }
+
+        const opDateInput = document.getElementById('op-date');
+        if (opDateInput) {
+            opDateInput.value = todayStr;
+            opDateInput.max = todayStr;
+        }
+
+        // 3. Load data
+        loadState();
+
+        // 4. Check for daily reset
+        checkDailyReset();
+
+        // 5. Setup event listeners
+        setupEventListeners();
+
+        // 6. Start Clock
+        startClock();
+
+        // 7. Initial Render
+        renderAll();
+    } catch (err) {
+        console.error("App Initialization Warning:", err);
     }
-
-    // 2. Set default date to today
-    const dateInput = document.getElementById('entry-date');
-    const todayStr = getTodayLocalDateString();
-    dateInput.value = todayStr;
-    dateInput.max = todayStr; // Prevent future dates
-
-    const opDateInput = document.getElementById('op-date');
-    if (opDateInput) {
-        opDateInput.value = todayStr;
-        opDateInput.max = todayStr;
-    }
-
-    // 3. Load data
-    loadState();
-
-    // 4. Check for daily reset
-    checkDailyReset();
-
-    // 5. Setup event listeners
-    setupEventListeners();
-
-    // 6. Start Clock
-    startClock();
-
-    // 7. Initial Render
-    renderAll();
 });
 
 // Helper: Get today's date in YYYY-MM-DD local format
@@ -258,6 +264,7 @@ function checkDailyReset() {
 // Clock updates date & time badge
 function startClock() {
     const clockDisplay = document.getElementById('current-datetime-display');
+    if (!clockDisplay) return;
     const update = () => {
         const now = new Date();
         const formatted = now.toLocaleDateString('en-US', {
@@ -317,16 +324,18 @@ function setupEventListeners() {
     const nameInput = document.getElementById('patient-name');
     const countPreview = document.getElementById('count-preview');
 
-    nameInput.addEventListener('input', () => {
-        const nameVal = nameInput.value.trim();
-        if (nameVal.length > 0) {
-            const nextCount = dailyPatients.length + 1;
-            countPreview.textContent = `#${nextCount}`;
-            countPreview.classList.add('visible');
-        } else {
-            countPreview.classList.remove('visible');
-        }
-    });
+    if (nameInput && countPreview) {
+        nameInput.addEventListener('input', () => {
+            const nameVal = nameInput.value.trim();
+            if (nameVal.length > 0) {
+                const nextCount = dailyPatients.length + 1;
+                countPreview.textContent = `#${nextCount}`;
+                countPreview.classList.add('visible');
+            } else {
+                countPreview.classList.remove('visible');
+            }
+        });
+    }
 
     // Form Submissions
     const form = document.getElementById('patient-form');
@@ -360,9 +369,14 @@ function setupEventListeners() {
     }
 
     // Ledger Search / Filters
-    document.getElementById('search-input').addEventListener('input', renderLedgerTable);
-    document.getElementById('filter-start-date').addEventListener('change', renderLedgerTable);
-    document.getElementById('filter-end-date').addEventListener('change', renderLedgerTable);
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.addEventListener('input', renderLedgerTable);
+
+    const startDateInput = document.getElementById('filter-start-date');
+    if (startDateInput) startDateInput.addEventListener('change', renderLedgerTable);
+
+    const endDateInput = document.getElementById('filter-end-date');
+    if (endDateInput) endDateInput.addEventListener('change', renderLedgerTable);
 
     const ledgerTypeSelect = document.getElementById('ledger-type-select');
     if (ledgerTypeSelect) {
@@ -380,51 +394,59 @@ function setupEventListeners() {
                 const monthIndex = parseInt(parts[1]) - 1;
                 const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
                 
-                document.getElementById('filter-start-date').value = `${ym}-01`;
-                document.getElementById('filter-end-date').value = `${ym}-${String(daysInMonth).padStart(2, '0')}`;
+                if (startDateInput) startDateInput.value = `${ym}-01`;
+                if (endDateInput) endDateInput.value = `${ym}-${String(daysInMonth).padStart(2, '0')}`;
             } else {
-                document.getElementById('filter-start-date').value = '';
-                document.getElementById('filter-end-date').value = '';
+                if (startDateInput) startDateInput.value = '';
+                if (endDateInput) endDateInput.value = '';
             }
             renderLedgerTable();
         });
     }
 
     // Clear Filters
-    document.getElementById('clear-filters-btn').addEventListener('click', () => {
-        document.getElementById('search-input').value = '';
-        document.getElementById('filter-start-date').value = '';
-        document.getElementById('filter-end-date').value = '';
-        if (ledgerMonthSelect) ledgerMonthSelect.value = '';
-        if (ledgerTypeSelect) ledgerTypeSelect.value = 'all';
-        renderLedgerTable();
-        showToast('Filters cleared', 'info');
-    });
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            if (startDateInput) startDateInput.value = '';
+            if (endDateInput) endDateInput.value = '';
+            if (ledgerMonthSelect) ledgerMonthSelect.value = '';
+            if (ledgerTypeSelect) ledgerTypeSelect.value = 'all';
+            renderLedgerTable();
+            showToast('Filters cleared', 'info');
+        });
+    }
 
     // Export CSV
-    document.getElementById('export-csv-btn').addEventListener('click', exportLedgerToCSV);
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+    if (exportCsvBtn) exportCsvBtn.addEventListener('click', exportLedgerToCSV);
 
     // Delete All Ledger Entries Button
-    document.getElementById('clear-ledger-btn').addEventListener('click', () => {
-        if (allPatients.length === 0) {
-            showToast('No records available to delete.', 'info');
-            return;
-        }
-        openModal(
-            'Delete All Ledger Records?',
-            'Are you sure you want to permanently delete all records from the Main Ledger (Sheet 2)? This action cannot be undone.',
-            () => {
-                allPatients = [];
-                dailyPatients = [];
-                saveState();
-                renderAll();
-                showToast('All ledger records have been deleted permanently.', 'info');
+    const clearLedgerBtn = document.getElementById('clear-ledger-btn');
+    if (clearLedgerBtn) {
+        clearLedgerBtn.addEventListener('click', () => {
+            if (allPatients.length === 0) {
+                showToast('No records available to delete.', 'info');
+                return;
             }
-        );
-    });
+            openModal(
+                'Delete All Ledger Records?',
+                'Are you sure you want to permanently delete all records from the Main Ledger (Sheet 2)? This action cannot be undone.',
+                () => {
+                    allPatients = [];
+                    dailyPatients = [];
+                    saveState();
+                    renderAll();
+                    showToast('All ledger records have been deleted permanently.', 'info');
+                }
+            );
+        });
+    }
 
     // Sync All Button
-    document.getElementById('sync-all-btn').addEventListener('click', syncAllPending);
+    const syncAllBtn = document.getElementById('sync-all-btn');
+    if (syncAllBtn) syncAllBtn.addEventListener('click', syncAllPending);
 
     // Settings Modal Triggers
     const settingsModal = document.getElementById('settings-modal');
@@ -918,9 +940,13 @@ function renderDailyStats() {
     const todayTotal = dailyPatients.reduce((sum, p) => sum + p.charges, 0);
     const todayDoctorShare = todayTotal * cfg.doctorRate;
 
-    document.getElementById('today-count').textContent = todayCount;
-    document.getElementById('today-charges').textContent = formatCurrency(todayTotal);
-    document.getElementById('today-split-30').textContent = formatCurrency(todayDoctorShare);
+    const countEl = document.getElementById('today-count');
+    const chargesEl = document.getElementById('today-charges');
+    const split30El = document.getElementById('today-split-30');
+
+    if (countEl) countEl.textContent = todayCount;
+    if (chargesEl) chargesEl.textContent = formatCurrency(todayTotal);
+    if (split30El) split30El.textContent = formatCurrency(todayDoctorShare);
 }
 
 // Render Sheet 1 Table
@@ -1366,10 +1392,15 @@ function renderAnalytics() {
     const doctorShare = monthPatients.reduce((sum, p) => sum + (p.split30 !== undefined ? p.split30 : p.charges * cfg.doctorRate), 0);
     const hospitalShare = monthPatients.reduce((sum, p) => sum + (p.split70 !== undefined ? p.split70 : p.charges * cfg.hospitalRate), 0);
 
-    document.getElementById('analytics-month-count').textContent = totalCount;
-    document.getElementById('analytics-month-gross').textContent = formatCurrency(grossTotal);
-    document.getElementById('analytics-month-doctor').textContent = formatCurrency(doctorShare);
-    document.getElementById('analytics-month-hospital').textContent = formatCurrency(hospitalShare);
+    const cEl = document.getElementById('analytics-month-count');
+    const gEl = document.getElementById('analytics-month-gross');
+    const dEl = document.getElementById('analytics-month-doctor');
+    const hEl = document.getElementById('analytics-month-hospital');
+
+    if (cEl) cEl.textContent = totalCount;
+    if (gEl) gEl.textContent = formatCurrency(grossTotal);
+    if (dEl) dEl.textContent = formatCurrency(doctorShare);
+    if (hEl) hEl.textContent = formatCurrency(hospitalShare);
 
     // Days in selected month
     const parts = selectedMonth.split('-');
