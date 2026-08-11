@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr Naila Patient Tracker & Financial Ledger</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Lucide Icons & Chart.js -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i data-lucide="activity"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>Dr Naila Patient Tracker</h1>
+                    <p>Daily Log & Google Sheets Sync</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <div class="time-badge" id="live-clock-badge">
+                    <i data-lucide="calendar"></i>
+                    <span id="current-datetime-display">Loading date & time...</span>
+                </div>
+                <button id="settings-btn" class="settings-trigger-btn" title="Google Sheet Settings">
+                    <i data-lucide="settings"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Hospital Switcher Toolbar -->
+        <div class="hospital-switcher-container">
+            <div class="hospital-switcher" role="tablist">
+                <button id="hospital-naeem-btn" class="hospital-btn active" data-hospital="naeem">
+                    <i data-lucide="building-2"></i>
+                    <div class="hospital-btn-info">
+                        <span class="hospital-name">Naeem Surgical</span>
+                        <span class="hospital-badge">Doctor 30% / Hospital 70%</span>
+                    </div>
+                </button>
+                <button id="hospital-cavalry-btn" class="hospital-btn" data-hospital="cavalry">
+                    <i data-lucide="building"></i>
+                    <div class="hospital-btn-info">
+                        <span class="hospital-name">Cavalry Hospital</span>
+                        <span class="hospital-badge">Doctor 70% / Hospital 30%</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="tab-navigation" role="tablist">
+            <button class="tab-btn active" id="tab1-btn" role="tab" aria-selected="true" aria-controls="sheet1-content">
+                <i data-lucide="clipboard-list"></i>
+                <span>Daily Log (Sheet 1)</span>
+            </button>
+            <button class="tab-btn" id="tab2-btn" role="tab" aria-selected="false" aria-controls="sheet2-content">
+                <i data-lucide="database"></i>
+                <span>All-Time Ledger (Sheet 2)</span>
+            </button>
+            <button class="tab-btn" id="tab3-btn" role="tab" aria-selected="false" aria-controls="sheet3-content">
+                <i data-lucide="trending-up"></i>
+                <span>Analytics & Trends (Sheet 3)</span>
+            </button>
+            <button class="tab-btn" id="tab4-btn" role="tab" aria-selected="false" aria-controls="sheet4-content">
+                <i data-lucide="scissors"></i>
+                <span>Operations (Sheet 4)</span>
+            </button>
+        </nav>
+
+        <!-- Sheet 1: Daily Log Tab -->
+        <main id="sheet1-content" class="tab-content active" role="tabpanel">
+            <!-- Stats Row -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Today's Patients</div>
+                    <div class="stat-value" id="today-count">0</div>
+                    <div class="stat-subtext">Sequential serial numbers</div>
+                </div>
+                <div class="stat-card secondary">
+                    <div class="stat-label">Today's Charges</div>
+                    <div class="stat-value" id="today-charges">Rs. 0.00</div>
+                    <div class="stat-subtext">Daily gross billing</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label" id="today-doctor-label">Doctor Share (30%)</div>
+                    <div class="stat-value" id="today-split-30">Rs. 0.00</div>
+                    <div class="stat-subtext">Estimated payout today</div>
+                </div>
+            </div>
+
+            <!-- Main Work Area -->
+            <div class="daily-grid">
+                <!-- Entry Form -->
+                <section class="form-card">
+                    <h2 class="form-title">
+                        <i data-lucide="user-plus"></i>
+                        <span>New Patient Entry</span>
+                    </h2>
+                    <form id="patient-form" novalidate>
+                        <div class="form-group">
+                            <label class="form-label" for="patient-name">Patient Name</label>
+                            <div class="input-wrapper">
+                                <i class="input-icon" data-lucide="user"></i>
+                                <input type="text" id="patient-name" class="form-control" placeholder="Enter patient name" required autocomplete="off" list="past-patients-list">
+                                <span class="count-preview-badge" id="count-preview">#1</span>
+                                <datalist id="past-patients-list">
+                                    <!-- Populated dynamically with unique recurring names -->
+                                </datalist>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="entry-date">Date</label>
+                            <div class="input-wrapper">
+                                <i class="input-icon" data-lucide="calendar-days"></i>
+                                <input type="date" id="entry-date" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="entry-charges">Charges (Rs.)</label>
+                            <div class="input-wrapper">
+                                <i class="input-icon" data-lucide="banknote"></i>
+                                <input type="number" id="entry-charges" class="form-control" placeholder="0.00" min="0" step="0.01" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">
+                            <i data-lucide="save"></i>
+                            <span>Save Entry</span>
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Daily Table -->
+                <section class="data-card">
+                    <div class="table-header">
+                        <h2 class="table-title">
+                            <i data-lucide="list"></i>
+                            <span>Today's Log Entries</span>
+                        </h2>
+                        <div class="table-actions">
+                            <button id="end-day-btn" class="btn btn-outline-danger btn-sm" style="width: auto; padding: 0.5rem 1rem;">
+                                <i data-lucide="trash-2"></i>
+                                <span>End & Clear Day</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="daily-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">No.</th>
+                                    <th>Patient Name</th>
+                                    <th>Date</th>
+                                    <th style="text-align: right;">Charges (Rs.)</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="daily-table-body">
+                                <!-- Dynamic entries go here -->
+                            </tbody>
+                        </table>
+                        <div id="daily-empty-state" class="empty-state">
+                            <div class="empty-icon">
+                                <i data-lucide="folder-open"></i>
+                            </div>
+                            <div class="empty-text">No patients registered today</div>
+                            <p style="font-size: 0.85rem;">Enter details on the left to start the daily log.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Sheet 2: All-Time Database Tab -->
+        <main id="sheet2-content" class="tab-content" role="tabpanel">
+            <!-- Stats Row -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Patients (All-Time)</div>
+                    <div class="stat-value" id="ledger-total-count">0</div>
+                    <div class="stat-subtext">Cumulative patient count</div>
+                </div>
+                <div class="stat-card secondary">
+                    <div class="stat-label">Gross Earnings</div>
+                    <div class="stat-value" id="ledger-gross">Rs. 0.00</div>
+                    <div class="stat-subtext">Total patient billings</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label" id="ledger-doctor-label">Doctor Share (30%)</div>
+                    <div class="stat-value" id="ledger-share-30">Rs. 0.00</div>
+                    <div class="stat-subtext">All-time doctor earnings</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label" id="ledger-hospital-label">Hospital Share (70%)</div>
+                    <div class="stat-value" id="ledger-share-70">Rs. 0.00</div>
+                    <div class="stat-subtext">Operating & hospital share</div>
+                </div>
+            </div>
+
+            <!-- Ledger Database -->
+            <section class="data-card">
+                <div class="table-header">
+                    <h2 class="table-title">
+                        <i data-lucide="archive"></i>
+                        <span>Main Archival Ledger</span>
+                    </h2>
+                    <div class="table-actions" style="display: flex; gap: 0.5rem;">
+                        <button id="sync-all-btn" class="btn btn-primary" style="width: auto; padding: 0.5rem 1rem; display: none;">
+                            <i data-lucide="refresh-cw"></i>
+                            <span>Sync Pending (<span id="pending-sync-count">0</span>)</span>
+                        </button>
+                        <button id="export-csv-btn" class="btn btn-secondary" style="width: auto; padding: 0.5rem 1rem;">
+                            <i data-lucide="download"></i>
+                            <span>Export CSV</span>
+                        </button>
+                        <button id="clear-ledger-btn" class="btn btn-outline-danger" style="width: auto; padding: 0.5rem 1rem;">
+                            <i data-lucide="trash-2"></i>
+                            <span>Delete All</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="search-filter-row">
+                    <div class="search-box">
+                        <div class="input-wrapper">
+                            <i class="input-icon" data-lucide="search"></i>
+                            <input type="text" id="search-input" class="form-control" placeholder="Search patient name...">
+                        </div>
+                    </div>
+                    <div class="date-filter">
+                        <label class="form-label" style="margin-bottom: 0;" for="ledger-type-select">Type:</label>
+                        <select id="ledger-type-select" class="form-control" style="width: auto; min-width: 140px; padding-top: 0.4rem; padding-bottom: 0.4rem;">
+                            <option value="all">All Records</option>
+                            <option value="opd">Normal Patients (OPD)</option>
+                            <option value="operation">Operations Only</option>
+                        </select>
+                    </div>
+                    <div class="date-filter">
+                        <label class="form-label" style="margin-bottom: 0;" for="ledger-month-select">Month:</label>
+                        <select id="ledger-month-select" class="form-control" style="width: auto; min-width: 150px; padding-top: 0.4rem; padding-bottom: 0.4rem;">
+                            <option value="">All Months</option>
+                        </select>
+                    </div>
+                    <div class="date-filter">
+                        <label class="form-label" style="margin-bottom: 0;" for="filter-start-date">From:</label>
+                        <input type="date" id="filter-start-date" class="date-input">
+                    </div>
+                    <div class="date-filter">
+                        <label class="form-label" style="margin-bottom: 0;" for="filter-end-date">To:</label>
+                        <input type="date" id="filter-end-date" class="date-input">
+                    </div>
+                    <button id="clear-filters-btn" class="btn btn-outline-danger" style="width: auto; padding: 0.5rem 1rem;">
+                        <span>Clear Filters</span>
+                    </button>
+                </div>
+
+                <!-- Separate Operations Summary Block on Sheet 2 -->
+                <div id="operations-summary-block" class="operations-summary-block" style="padding: 1.25rem 1.5rem; background-color: #f0fdf4; border-bottom: 1px solid var(--border); border-left: 4px solid var(--success);">
+                    <div class="summary-banner-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: var(--success); display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="scissors" style="width: 18px; height: 18px;"></i>
+                            <span>Separate Operations Earnings Block</span>
+                        </span>
+                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Independent Operations Storage</span>
+                    </div>
+                    <div class="summary-banner-stats" style="margin-top: 0.75rem;">
+                        <div class="banner-stat-item">
+                            <span class="banner-stat-label">Total Operations</span>
+                            <span class="banner-stat-value" id="ledger-op-count">0</span>
+                        </div>
+                        <div class="banner-stat-item">
+                            <span class="banner-stat-label">Total Operation Revenue</span>
+                            <span class="banner-stat-value" id="ledger-op-gross">Rs. 0.00</span>
+                        </div>
+                        <div class="banner-stat-item success">
+                            <span class="banner-stat-label">Private Operations</span>
+                            <span class="banner-stat-value" id="ledger-op-private-summary">0 (Rs. 0.00)</span>
+                        </div>
+                        <div class="banner-stat-item secondary">
+                            <span class="banner-stat-label">Hospital Operations</span>
+                            <span class="banner-stat-value" id="ledger-op-hospital-summary">0 (Rs. 0.00)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtered / Monthly Summary Block -->
+                <div id="filtered-summary-banner" class="filtered-summary-banner">
+                    <div class="summary-banner-title">
+                        <i data-lucide="filter" style="width: 18px; height: 18px; color: var(--primary);"></i>
+                        <span id="summary-banner-label">All-Time Ledger Summary</span>
+                    </div>
+                    <div class="summary-banner-stats">
+                        <div class="banner-stat-item">
+                            <span class="banner-stat-label">Matching Patients</span>
+                            <span class="banner-stat-value" id="filtered-count">0</span>
+                        </div>
+                        <div class="banner-stat-item">
+                            <span class="banner-stat-label">Gross Charges</span>
+                            <span class="banner-stat-value" id="filtered-gross">Rs. 0.00</span>
+                        </div>
+                        <div class="banner-stat-item success">
+                            <span class="banner-stat-label" id="filtered-doctor-label">Doctor Share (30%)</span>
+                            <span class="banner-stat-value" id="filtered-doctor-share">Rs. 0.00</span>
+                        </div>
+                        <div class="banner-stat-item secondary">
+                            <span class="banner-stat-label" id="filtered-hospital-label">Hospital Share (70%)</span>
+                            <span class="banner-stat-value" id="filtered-hospital-share">Rs. 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="ledger-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">No.</th>
+                                <th>Patient Name</th>
+                                <th>Date</th>
+                                <th style="text-align: right;">Gross Charges (Rs.)</th>
+                                <th id="ledger-th-doctor" style="text-align: right; color: var(--success);">Doctor Share 30% (Rs.)</th>
+                                <th id="ledger-th-hospital" style="text-align: right; color: var(--secondary);">Hospital Share 70% (Rs.)</th>
+                                <th style="width: 110px; text-align: center;">Sheet Sync</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledger-table-body">
+                            <!-- Dynamic entries go here -->
+                        </tbody>
+                    </table>
+                    <div id="ledger-empty-state" class="empty-state">
+                        <div class="empty-icon">
+                            <i data-lucide="inbox"></i>
+                        </div>
+                        <div class="empty-text">No persistent records found</div>
+                        <p style="font-size: 0.85rem;">Patient logs will automatically save to this ledger forever.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Sheet 3: Analytics & Trends Tab -->
+        <main id="sheet3-content" class="tab-content" role="tabpanel">
+            <!-- Filter Bar for Analytics -->
+            <div class="table-header" style="background-color: var(--bg-surface); border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <h2 class="table-title">
+                    <i data-lucide="line-chart" style="color: var(--primary);"></i>
+                    <span>Monthly Performance Analytics</span>
+                </h2>
+                <div class="table-actions" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <label class="form-label" style="margin-bottom: 0; font-weight: 600;" for="analytics-month-select">Month:</label>
+                    <select id="analytics-month-select" class="form-control" style="width: auto; min-width: 180px; padding-top: 0.4rem; padding-bottom: 0.4rem;">
+                        <!-- Options generated dynamically -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Month Summary Stats Row -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Month Patients</div>
+                    <div class="stat-value" id="analytics-month-count">0</div>
+                    <div class="stat-subtext">Total patients in selected month</div>
+                </div>
+                <div class="stat-card secondary">
+                    <div class="stat-label">Gross Revenue</div>
+                    <div class="stat-value" id="analytics-month-gross">Rs. 0.00</div>
+                    <div class="stat-subtext">Total billings in selected month</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label" id="analytics-doctor-label">Doctor Earnings (30%)</div>
+                    <div class="stat-value" id="analytics-month-doctor">Rs. 0.00</div>
+                    <div class="stat-subtext">Doctor share for selected month</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label" id="analytics-hospital-label">Hospital Share (70%)</div>
+                    <div class="stat-value" id="analytics-month-hospital">Rs. 0.00</div>
+                    <div class="stat-subtext">Hospital share for selected month</div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+                <!-- Patient Flow Line Chart -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">
+                            <i data-lucide="users" style="color: var(--primary);"></i>
+                            <span>Daily Patient Flow (Line Chart)</span>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="patient-flow-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Daily Revenue Bar Chart -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">
+                            <i data-lucide="banknote" style="color: var(--secondary);"></i>
+                            <span>Daily Revenue & Split Breakdown</span>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="revenue-breakdown-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 6-Month Comparison Chart -->
+                <div class="chart-card" style="grid-column: 1 / -1;">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">
+                            <i data-lucide="bar-chart-2" style="color: var(--primary);"></i>
+                            <span>Past 6-Month Patient Volume Comparison</span>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper" style="height: 250px;">
+                        <canvas id="monthly-history-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Sheet 4: Operations Management Tab -->
+        <main id="sheet4-content" class="tab-content" role="tabpanel">
+            <!-- Operations Stats Row -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Operations</div>
+                    <div class="stat-value" id="op-total-count">0</div>
+                    <div class="stat-subtext">Recorded procedures</div>
+                </div>
+                <div class="stat-card secondary">
+                    <div class="stat-label">Total Operations Revenue</div>
+                    <div class="stat-value" id="op-total-charges">Rs. 0.00</div>
+                    <div class="stat-subtext">Cumulative earned amount</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">Private Patient Operations</div>
+                    <div class="stat-value" id="op-private-count">0</div>
+                    <div class="stat-subtext">Personal private practice</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">Hospital Operations</div>
+                    <div class="stat-value" id="op-hospital-count">0</div>
+                    <div class="stat-subtext">Hospital referred procedures</div>
+                </div>
+            </div>
+
+            <!-- Operations Work Area -->
+            <div class="daily-grid">
+                <!-- Operation Entry Form -->
+                <section class="form-card">
+                    <h2 class="form-title">
+                        <i data-lucide="scissors" style="color: var(--primary);"></i>
+                        <span>New Operation Entry</span>
+                    </h2>
+                    <form id="operation-form" novalidate>
+                        <div class="form-group">
+                            <label class="form-label" for="op-patient-name">Patient Name</label>
+                            <div class="input-wrapper">
+                                <i class="input-icon" data-lucide="user"></i>
+                                <input type="text" id="op-patient-name" class="form-control" placeholder="Enter patient name" required autocomplete="off" list="past-patients-list">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="op-procedure-type">Operation / Procedure Type</label>
+                            <div class="input-wrapper">
+                                <i class="input-icon" data-lucide="activity"></i>
+                                <input type="text" id="op-procedure-type" class="form-control" placeholder="e.g. C-Section, Gallbladder, Minor Surgery" required autocomplete="off">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="op-date">Date</label>
+                            <div class="input-wrapper">
+                                <i class="input-icon" data-lucide="calendar-days"></i>
+                                <input type="date" id="op-date" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <!-- Patient Category Radio Group (Informational Tag) -->
+                        <div class="form-group">
+                            <label class="form-label">Patient Category (Informational Tag)</label>
+                            <div class="patient-category-toggle">
+                                <label class="category-pill active" id="pill-private">
+                                    <input type="radio" name="op-patient-category" value="private" checked style="display: none;">
+                                    <i data-lucide="user-check"></i>
+                                    <span>Private Patient</span>
+                                </label>
+                                <label class="category-pill" id="pill-hospital">
+                                    <input type="radio" name="op-patient-category" value="hospital" style="display: none;">
+                                    <i data-lucide="building-2"></i>
+                                    <span>Hospital Patient</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="op-charges">Amount Earned (Rs.)</label>
+                            <div class="input-wrapper">
+                                <i class="input-icon" data-lucide="banknote"></i>
+                                <input type="number" id="op-charges" class="form-control" placeholder="0.00" min="0" step="0.01" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">
+                            <i data-lucide="save"></i>
+                            <span>Save Operation Record</span>
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Operations Data Table -->
+                <section class="data-card">
+                    <div class="table-header">
+                        <h2 class="table-title">
+                            <i data-lucide="list"></i>
+                            <span>Recorded Operations Log</span>
+                        </h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="operations-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 70px;">No.</th>
+                                    <th>Patient Name</th>
+                                    <th>Procedure</th>
+                                    <th>Category</th>
+                                    <th>Date</th>
+                                    <th style="text-align: right;">Earned Amount (Rs.)</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="operations-table-body">
+                                <!-- Dynamic entries go here -->
+                            </tbody>
+                        </table>
+                        <div id="op-empty-state" class="empty-state">
+                            <div class="empty-icon">
+                                <i data-lucide="folder-open"></i>
+                            </div>
+                            <div class="empty-text">No operations recorded yet</div>
+                            <p style="font-size: 0.85rem;">Enter procedure details on the left to start tracking operations.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Google Sheet Configuration Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal" style="max-width: 600px; width: 95%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 class="modal-title" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="settings" style="color: var(--primary);"></i>
+                    <span>Google Sheets Sync Configuration</span>
+                </h3>
+                <button id="close-settings-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <div style="max-height: 400px; overflow-y: auto; padding-right: 0.5rem; margin-bottom: 1.5rem;">
+                <p class="modal-desc" style="margin-bottom: 1rem;">
+                    You can automatically sync all records to a Google Sheet. Follow these steps:
+                </p>
+                <ol style="margin-left: 1.25rem; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+                    <li>Open your Google Sheet and select <strong>Extensions > Apps Script</strong>.</li>
+                    <li>Delete any code in the editor, and paste the code snippet below.</li>
+                    <li>Click <strong>Deploy > New Deployment</strong>, choose <strong>Web App</strong>, select <strong>Execute as: "Me"</strong>, and <strong>Who has access: "Anyone"</strong>.</li>
+                    <li>Deploy it, authorize Google permissions, copy the <strong>Web App URL</strong> and paste it below.</li>
+                </ol>
+
+                <!-- Code box wrapper -->
+                <div style="position: relative; margin-bottom: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-primary); padding: 0.5rem 1rem; border-top-left-radius: var(--radius-sm); border-top-right-radius: var(--radius-sm); border: 1px solid var(--border); border-bottom: none;">
+                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Google Apps Script Code</span>
+                        <button id="copy-script-btn" class="btn" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.75rem; border: 1px solid var(--border); background: var(--bg-surface); color: var(--primary);">
+                            <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+                            <span>Copy Code</span>
+                        </button>
+                    </div>
+                    <textarea id="apps-script-code" readonly style="width: 100%; height: 150px; font-family: monospace; font-size: 0.75rem; padding: 0.75rem; background-color: var(--bg-primary); color: var(--text-secondary); border: 1px solid var(--border); border-bottom-left-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); resize: none; outline: none;"></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="google-sheet-url">Google Web App URL</label>
+                    <div class="input-wrapper">
+                        <i class="input-icon" data-lucide="link"></i>
+                        <input type="url" id="google-sheet-url" class="form-control" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" style="padding-right: 80px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-outline-danger modal-btn" id="disconnect-sheet-btn" style="display: none; background-color: transparent; border-color: var(--danger); color: var(--danger);">
+                    <span>Disconnect</span>
+                </button>
+                <div style="flex: 1;"></div>
+                <button class="btn btn-outline-danger modal-btn" id="cancel-settings-btn" style="width: auto; border: 1px solid var(--border); color: var(--text-secondary); background: transparent;">Cancel</button>
+                <button class="btn btn-primary modal-btn" id="save-settings-btn" style="width: auto; background-color: var(--primary);">
+                    <i data-lucide="check"></i>
+                    <span>Test & Save</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal">
+            <h3 class="modal-title" id="modal-title-text">Confirm Action</h3>
+            <p class="modal-desc" id="modal-desc-text">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button class="btn btn-outline-danger modal-btn" id="modal-cancel-btn">Cancel</button>
+                <button class="btn btn-primary modal-btn" id="modal-confirm-btn" style="background-color: var(--danger);">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
