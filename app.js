@@ -1115,13 +1115,18 @@ function renderLedgerTable() {
             ? `${escapeHtml(p.name)} <span style="font-size: 0.8rem; color: var(--text-muted);">(${escapeHtml(p.procedure)})</span>`
             : escapeHtml(p.name);
 
+        const noBadgeHtml = (p.dailyIndex && p.dailyIndex !== '-')
+            ? `<span class="patient-badge">#${p.dailyIndex}</span>`
+            : '<span style="color: var(--text-muted); font-size: 0.8rem;">-</span>';
+
         tr.innerHTML = `
             <td>${typeBadgeHtml}</td>
+            <td>${noBadgeHtml}</td>
             <td style="font-weight: 500;">${nameDisplay}</td>
             <td>${formatDateDisplay(p.date)}</td>
             <td class="charge-text" style="text-align: right;">${formatCurrency(p.charges)}</td>
-            <td class="charge-text" style="text-align: right; color: var(--success); font-weight: 500;">${formatCurrency(p.recordKind === 'operation' ? p.charges : p.split30)}</td>
-            <td class="charge-text" style="text-align: right; color: var(--text-muted);">${formatCurrency(p.recordKind === 'operation' ? 0 : p.split70)}</td>
+            <td class="charge-text" style="text-align: right; color: var(--success); font-weight: 500;">${formatCurrency(p.recordKind === 'operation' ? p.charges : (p.split30 !== undefined ? p.split30 : p.charges * cfg.doctorRate))}</td>
+            <td class="charge-text" style="text-align: right; color: var(--text-muted);">${formatCurrency(p.recordKind === 'operation' ? 0 : (p.split70 !== undefined ? p.split70 : p.charges * cfg.hospitalRate))}</td>
             <td style="text-align: center;">${syncBadgeHtml}</td>
             <td style="text-align: right;">
                 <button class="${p.recordKind === 'operation' ? 'delete-op-row-btn' : 'delete-ledger-row-btn'}" data-id="${p.id}" style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 0.25rem;">
