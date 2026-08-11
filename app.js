@@ -78,10 +78,10 @@ const APPS_SCRIPT_CODE = `function doPost(e) {
 }`;
 
 // Initialize App
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
     try {
         // 1. Initialize Lucide Icons
-        if (window.lucide) {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
             window.lucide.createIcons();
         }
 
@@ -116,7 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
         console.error("App Initialization Warning:", err);
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 // Helper: Get today's date in YYYY-MM-DD local format
 function getTodayLocalDateString() {
