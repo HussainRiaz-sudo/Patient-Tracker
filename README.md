@@ -24,33 +24,25 @@ A modern, responsive, offline-first web application designed for medical practit
 - **Dynamic Revenue Split Calculation:** Computes revenue distribution instantly in **Pakistani Rupees (PKR)** based on active hospital split rules:
   - **Naeem Surgical:** 30% Doctor / 70% Hospital
   - **Cavalry Hospital:** 70% Doctor / 30% Hospital
-- **Separate Operations Earnings Block:** Dedicated banner displaying total operations, operations gross billings, and private vs hospital operation breakdowns stored independently.
-- **Entry Type Filter:** Filter records seamlessly between `All Records`, `Normal Patients (OPD)`, and `Operations Only`.
 - **Quick Month Selector:** Pick any specific month directly from the filter toolbar to auto-populate date boundaries and view monthly totals.
 - **Dynamic Filtered Summary Banner:** Dedicated real-time summary block above the ledger table that calculates:
   - **Filtered Matching Patients**
   - **Filtered Gross Charges (PKR)**
   - **Filtered Doctor Share (PKR)** *(30% or 70%)*
   - **Filtered Hospital Share (PKR)** *(70% or 30%)*
-- **Search & Multi-Filter Engine:** Filter entries instantly by patient name, month, entry type, or custom date ranges (*From Date / To Date*).
+- **Search & Multi-Filter Engine:** Filter entries instantly by patient name, month, or custom date ranges (*From Date / To Date*).
 - **Data Export & Controls:**
   - One-click **CSV Backup Export** labeled with the active hospital's name and split rates.
   - Modal-protected **Delete All** ledger reset option per hospital.
 
-### ✂️ 4. Surgical Operations Management (Sheet 4)
-- **Independent Operations Database:** Operations data is stored in isolated LocalStorage databases (`doctor_naeem_operations` & `doctor_cavalry_operations`), completely separate from normal OPD patient intake.
-- **Informational Patient Category Tags:** Toggle between **Private Patient** and **Hospital Patient** for record-keeping and memory.
-- **Earned Amount Tracking:** Record earned amounts for each surgical procedure and track gross operational revenue.
-- **Dedicated Operations Log:** Dedicated table displaying all procedure details, patient category tags, and delete controls.
-
-### 📊 5. Analytics & Trends (Sheet 3)
+### 📊 4. Analytics & Trends (Sheet 3)
 - **Interactive Visual Dashboard:** Powered by **Chart.js** with location-specific charting modes:
   - 📈 **Daily Patient Flow (Line Chart):** Tracks day-by-day patient volume for the selected month and hospital.
   - 📊 **Revenue & Split Breakdown (Stacked Bar Chart):** Visualizes daily earnings split dynamically formatted for the active hospital.
   - 📅 **Past 6-Month Volume Comparison:** Bar graph comparing total patient volume across the last 6 months.
 - **Dynamic Month Selector:** View analytics for the current month or switch to any historical month archived in the database.
 
-### 🔄 6. Offline-First & Google Sheets Sync
+### 🔄 5. Offline-First & Google Sheets Sync
 - **Standalone Local Storage:** Operates completely offline with zero internet dependency.
 - **Optional Background Sync:** Features a built-in settings modal with copyable **Google Apps Script** code to auto-sync pending records in the background to dedicated Google Sheets per hospital.
 

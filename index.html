@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dr Naila Patient Tracker & Financial Ledger</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1.0.5">
-    <link rel="stylesheet" href="styles.css?v=1.0.5">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles.css">
     <!-- Lucide Icons & Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -67,10 +67,6 @@
             <button class="tab-btn" id="tab3-btn" role="tab" aria-selected="false" aria-controls="sheet3-content">
                 <i data-lucide="trending-up"></i>
                 <span>Analytics & Trends (Sheet 3)</span>
-            </button>
-            <button class="tab-btn" id="tab4-btn" role="tab" aria-selected="false" aria-controls="sheet4-content">
-                <i data-lucide="scissors"></i>
-                <span>Operations (Sheet 4)</span>
             </button>
         </nav>
 
@@ -139,19 +135,17 @@
                     </form>
                 </section>
 
-                <!-- Daily Table -->
+                <!-- Daily Data Table -->
                 <section class="data-card">
                     <div class="table-header">
                         <h2 class="table-title">
                             <i data-lucide="list"></i>
                             <span>Today's Log Entries</span>
                         </h2>
-                        <div class="table-actions">
-                            <button id="end-day-btn" class="btn btn-outline-danger btn-sm" style="width: auto; padding: 0.5rem 1rem;">
-                                <i data-lucide="trash-2"></i>
-                                <span>End & Clear Day</span>
-                            </button>
-                        </div>
+                        <button id="end-day-btn" class="btn btn-outline-danger" title="Clear today's log for a new day">
+                            <i data-lucide="rotate-ccw"></i>
+                            <span>End & Clear Day</span>
+                        </button>
                     </div>
                     <div class="table-container">
                         <table id="daily-table">
@@ -172,59 +166,59 @@
                             <div class="empty-icon">
                                 <i data-lucide="folder-open"></i>
                             </div>
-                            <div class="empty-text">No patients registered today</div>
-                            <p style="font-size: 0.85rem;">Enter details on the left to start the daily log.</p>
+                            <div class="empty-text">No patients entered today yet</div>
+                            <p style="font-size: 0.85rem;">Use the form on the left to start logging patients.</p>
                         </div>
                     </div>
                 </section>
             </div>
         </main>
 
-        <!-- Sheet 2: All-Time Database Tab -->
+        <!-- Sheet 2: All-Time Ledger Tab -->
         <main id="sheet2-content" class="tab-content" role="tabpanel">
-            <!-- Stats Row -->
+            <!-- Archival Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-label">Total Patients (All-Time)</div>
+                    <div class="stat-label">Total Archived Patients</div>
                     <div class="stat-value" id="ledger-total-count">0</div>
-                    <div class="stat-subtext">Cumulative patient count</div>
+                    <div class="stat-subtext">All-time record entries</div>
                 </div>
                 <div class="stat-card secondary">
-                    <div class="stat-label">Gross Earnings</div>
+                    <div class="stat-label">All-Time Gross Charges</div>
                     <div class="stat-value" id="ledger-gross">Rs. 0.00</div>
                     <div class="stat-subtext">Total patient billings</div>
                 </div>
                 <div class="stat-card success">
                     <div class="stat-label" id="ledger-doctor-label">Doctor Share (30%)</div>
                     <div class="stat-value" id="ledger-share-30">Rs. 0.00</div>
-                    <div class="stat-subtext">All-time doctor earnings</div>
+                    <div class="stat-subtext">Total doctor earnings</div>
                 </div>
-                <div class="stat-card success">
+                <div class="stat-card secondary">
                     <div class="stat-label" id="ledger-hospital-label">Hospital Share (70%)</div>
                     <div class="stat-value" id="ledger-share-70">Rs. 0.00</div>
-                    <div class="stat-subtext">Operating & hospital share</div>
+                    <div class="stat-subtext">Total hospital earnings</div>
                 </div>
             </div>
 
-            <!-- Ledger Database -->
-            <section class="data-card">
-                <div class="table-header">
+            <!-- Main Ledger Container -->
+            <div class="data-card" style="margin-top: 1.5rem;">
+                <div class="table-header" style="flex-wrap: wrap; gap: 1rem;">
                     <h2 class="table-title">
                         <i data-lucide="archive"></i>
-                        <span>Main Archival Ledger</span>
+                        <span>Main Patient Ledger</span>
                     </h2>
-                    <div class="table-actions" style="display: flex; gap: 0.5rem;">
-                        <button id="sync-all-btn" class="btn btn-primary" style="width: auto; padding: 0.5rem 1rem; display: none;">
+                    <div class="table-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button id="sync-all-btn" class="btn btn-primary" style="display: none; width: auto;">
                             <i data-lucide="refresh-cw"></i>
                             <span>Sync Pending (<span id="pending-sync-count">0</span>)</span>
                         </button>
-                        <button id="export-csv-btn" class="btn btn-secondary" style="width: auto; padding: 0.5rem 1rem;">
+                        <button id="export-csv-btn" class="btn btn-outline-primary" style="width: auto;">
                             <i data-lucide="download"></i>
                             <span>Export CSV</span>
                         </button>
-                        <button id="clear-ledger-btn" class="btn btn-outline-danger" style="width: auto; padding: 0.5rem 1rem;">
+                        <button id="clear-ledger-btn" class="btn btn-outline-danger" style="width: auto;">
                             <i data-lucide="trash-2"></i>
-                            <span>Delete All</span>
+                            <span>Delete All Records</span>
                         </button>
                     </div>
                 </div>
@@ -236,14 +230,6 @@
                             <i class="input-icon" data-lucide="search"></i>
                             <input type="text" id="search-input" class="form-control" placeholder="Search patient name...">
                         </div>
-                    </div>
-                    <div class="date-filter">
-                        <label class="form-label" style="margin-bottom: 0;" for="ledger-type-select">Type:</label>
-                        <select id="ledger-type-select" class="form-control" style="width: auto; min-width: 140px; padding-top: 0.4rem; padding-bottom: 0.4rem;">
-                            <option value="all">All Records</option>
-                            <option value="opd">Normal Patients (OPD)</option>
-                            <option value="operation">Operations Only</option>
-                        </select>
                     </div>
                     <div class="date-filter">
                         <label class="form-label" style="margin-bottom: 0;" for="ledger-month-select">Month:</label>
@@ -262,35 +248,6 @@
                     <button id="clear-filters-btn" class="btn btn-outline-danger" style="width: auto; padding: 0.5rem 1rem;">
                         <span>Clear Filters</span>
                     </button>
-                </div>
-
-                <!-- Separate Operations Summary Block on Sheet 2 -->
-                <div id="operations-summary-block" class="operations-summary-block" style="padding: 1.25rem 1.5rem; background-color: #f0fdf4; border-bottom: 1px solid var(--border); border-left: 4px solid var(--success);">
-                    <div class="summary-banner-title" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 700; color: var(--success); display: flex; align-items: center; gap: 0.5rem;">
-                            <i data-lucide="scissors" style="width: 18px; height: 18px;"></i>
-                            <span>Separate Operations Earnings Block</span>
-                        </span>
-                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Independent Operations Storage</span>
-                    </div>
-                    <div class="summary-banner-stats" style="margin-top: 0.75rem;">
-                        <div class="banner-stat-item">
-                            <span class="banner-stat-label">Total Operations</span>
-                            <span class="banner-stat-value" id="ledger-op-count">0</span>
-                        </div>
-                        <div class="banner-stat-item">
-                            <span class="banner-stat-label">Total Operation Revenue</span>
-                            <span class="banner-stat-value" id="ledger-op-gross">Rs. 0.00</span>
-                        </div>
-                        <div class="banner-stat-item success">
-                            <span class="banner-stat-label">Private Operations</span>
-                            <span class="banner-stat-value" id="ledger-op-private-summary">0 (Rs. 0.00)</span>
-                        </div>
-                        <div class="banner-stat-item secondary">
-                            <span class="banner-stat-label">Hospital Operations</span>
-                            <span class="banner-stat-value" id="ledger-op-hospital-summary">0 (Rs. 0.00)</span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Filtered / Monthly Summary Block -->
@@ -323,8 +280,7 @@
                     <table id="ledger-table">
                         <thead>
                             <tr>
-                                <th style="width: 85px;">Type</th>
-                                <th style="width: 60px;">No.</th>
+                                <th style="width: 80px;">No.</th>
                                 <th>Patient Name</th>
                                 <th>Date</th>
                                 <th style="text-align: right;">Gross Charges (Rs.)</th>
@@ -340,80 +296,76 @@
                     </table>
                     <div id="ledger-empty-state" class="empty-state">
                         <div class="empty-icon">
-                            <i data-lucide="inbox"></i>
+                            <i data-lucide="folder-open"></i>
                         </div>
-                        <div class="empty-text">No persistent records found</div>
-                        <p style="font-size: 0.85rem;">Patient logs will automatically save to this ledger forever.</p>
+                        <div class="empty-text">No ledger records found</div>
+                        <p style="font-size: 0.85rem;">Try clearing search filters or add entries on Sheet 1.</p>
                     </div>
                 </div>
-            </section>
+            </div>
         </main>
 
-        <!-- Sheet 3: Analytics & Trends Tab -->
+        <!-- Sheet 3: Analytics Tab -->
         <main id="sheet3-content" class="tab-content" role="tabpanel">
-            <!-- Filter Bar for Analytics -->
-            <div class="table-header" style="background-color: var(--bg-surface); border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 2rem; box-shadow: var(--shadow-md);">
-                <h2 class="table-title">
-                    <i data-lucide="line-chart" style="color: var(--primary);"></i>
-                    <span>Monthly Performance Analytics</span>
-                </h2>
-                <div class="table-actions" style="display: flex; align-items: center; gap: 0.75rem;">
-                    <label class="form-label" style="margin-bottom: 0; font-weight: 600;" for="analytics-month-select">Month:</label>
-                    <select id="analytics-month-select" class="form-control" style="width: auto; min-width: 180px; padding-top: 0.4rem; padding-bottom: 0.4rem;">
-                        <!-- Options generated dynamically -->
+            <!-- Analytics Controls -->
+            <div class="search-filter-row" style="margin-bottom: 1.5rem;">
+                <div class="date-filter">
+                    <label class="form-label" style="margin-bottom: 0;" for="analytics-month-select">Select Month:</label>
+                    <select id="analytics-month-select" class="form-control" style="width: auto; min-width: 180px;">
+                        <!-- Populated dynamically -->
                     </select>
                 </div>
             </div>
 
-            <!-- Month Summary Stats Row -->
-            <div class="stats-grid">
+            <!-- Month Summary Stats -->
+            <div class="stats-grid" style="margin-bottom: 1.5rem;">
                 <div class="stat-card">
-                    <div class="stat-label">Month Patients</div>
+                    <div class="stat-label">Month's Total Patients</div>
                     <div class="stat-value" id="analytics-month-count">0</div>
-                    <div class="stat-subtext">Total patients in selected month</div>
+                    <div class="stat-subtext">Total volume this month</div>
                 </div>
                 <div class="stat-card secondary">
-                    <div class="stat-label">Gross Revenue</div>
+                    <div class="stat-label">Month's Gross Revenue</div>
                     <div class="stat-value" id="analytics-month-gross">Rs. 0.00</div>
-                    <div class="stat-subtext">Total billings in selected month</div>
+                    <div class="stat-subtext">Total billing this month</div>
                 </div>
                 <div class="stat-card success">
                     <div class="stat-label" id="analytics-doctor-label">Doctor Earnings (30%)</div>
                     <div class="stat-value" id="analytics-month-doctor">Rs. 0.00</div>
-                    <div class="stat-subtext">Doctor share for selected month</div>
+                    <div class="stat-subtext">Total payout this month</div>
                 </div>
-                <div class="stat-card success">
+                <div class="stat-card secondary">
                     <div class="stat-label" id="analytics-hospital-label">Hospital Share (70%)</div>
                     <div class="stat-value" id="analytics-month-hospital">Rs. 0.00</div>
-                    <div class="stat-subtext">Hospital share for selected month</div>
+                    <div class="stat-subtext">Hospital cut this month</div>
                 </div>
             </div>
 
-            <!-- Charts Grid -->
-            <div class="charts-grid">
-                <!-- Patient Flow Line Chart -->
+            <!-- Analytics Charts Grid -->
+            <div class="charts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+                <!-- Daily Flow Chart -->
                 <div class="chart-card">
                     <div class="chart-card-header">
                         <div class="chart-card-title">
-                            <i data-lucide="users" style="color: var(--primary);"></i>
-                            <span>Daily Patient Flow (Line Chart)</span>
+                            <i data-lucide="line-chart" style="color: var(--primary);"></i>
+                            <span>Daily Patient Flow</span>
                         </div>
                     </div>
-                    <div class="chart-wrapper">
-                        <canvas id="patient-flow-chart"></canvas>
+                    <div class="chart-wrapper" style="height: 250px;">
+                        <canvas id="flow-chart"></canvas>
                     </div>
                 </div>
 
-                <!-- Daily Revenue Bar Chart -->
+                <!-- Daily Revenue & Split Chart -->
                 <div class="chart-card">
                     <div class="chart-card-header">
                         <div class="chart-card-title">
-                            <i data-lucide="banknote" style="color: var(--secondary);"></i>
-                            <span>Daily Revenue & Split Breakdown</span>
+                            <i data-lucide="pie-chart" style="color: var(--primary);"></i>
+                            <span>Daily Revenue Split (Doctor vs Hospital)</span>
                         </div>
                     </div>
-                    <div class="chart-wrapper">
-                        <canvas id="revenue-breakdown-chart"></canvas>
+                    <div class="chart-wrapper" style="height: 250px;">
+                        <canvas id="revenue-chart"></canvas>
                     </div>
                 </div>
 
@@ -429,134 +381,6 @@
                         <canvas id="monthly-history-chart"></canvas>
                     </div>
                 </div>
-            </div>
-        </main>
-
-        <!-- Sheet 4: Operations Management Tab -->
-        <main id="sheet4-content" class="tab-content" role="tabpanel">
-            <!-- Operations Stats Row -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Operations</div>
-                    <div class="stat-value" id="op-total-count">0</div>
-                    <div class="stat-subtext">Recorded procedures</div>
-                </div>
-                <div class="stat-card secondary">
-                    <div class="stat-label">Total Operations Revenue</div>
-                    <div class="stat-value" id="op-total-charges">Rs. 0.00</div>
-                    <div class="stat-subtext">Cumulative earned amount</div>
-                </div>
-                <div class="stat-card success">
-                    <div class="stat-label">Private Patient Operations</div>
-                    <div class="stat-value" id="op-private-count">0</div>
-                    <div class="stat-subtext">Personal private practice</div>
-                </div>
-                <div class="stat-card success">
-                    <div class="stat-label">Hospital Operations</div>
-                    <div class="stat-value" id="op-hospital-count">0</div>
-                    <div class="stat-subtext">Hospital referred procedures</div>
-                </div>
-            </div>
-
-            <!-- Operations Work Area -->
-            <div class="daily-grid">
-                <!-- Operation Entry Form -->
-                <section class="form-card">
-                    <h2 class="form-title">
-                        <i data-lucide="scissors" style="color: var(--primary);"></i>
-                        <span>New Operation Entry</span>
-                    </h2>
-                    <form id="operation-form" novalidate>
-                        <div class="form-group">
-                            <label class="form-label" for="op-patient-name">Patient Name</label>
-                            <div class="input-wrapper">
-                                <i class="input-icon" data-lucide="user"></i>
-                                <input type="text" id="op-patient-name" class="form-control" placeholder="Enter patient name" required autocomplete="off" list="past-patients-list">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="op-procedure-type">Operation / Procedure Type</label>
-                            <div class="input-wrapper">
-                                <i class="input-icon" data-lucide="activity"></i>
-                                <input type="text" id="op-procedure-type" class="form-control" placeholder="e.g. C-Section, Gallbladder, Minor Surgery" required autocomplete="off">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="op-date">Date</label>
-                            <div class="input-wrapper">
-                                <i class="input-icon" data-lucide="calendar-days"></i>
-                                <input type="date" id="op-date" class="form-control" required>
-                            </div>
-                        </div>
-
-                        <!-- Patient Category Radio Group (Informational Tag) -->
-                        <div class="form-group">
-                            <label class="form-label">Patient Category (Informational Tag)</label>
-                            <div class="patient-category-toggle">
-                                <label class="category-pill active" id="pill-private">
-                                    <input type="radio" name="op-patient-category" value="private" checked style="display: none;">
-                                    <i data-lucide="user-check"></i>
-                                    <span>Private Patient</span>
-                                </label>
-                                <label class="category-pill" id="pill-hospital">
-                                    <input type="radio" name="op-patient-category" value="hospital" style="display: none;">
-                                    <i data-lucide="building-2"></i>
-                                    <span>Hospital Patient</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="op-charges">Amount Earned (Rs.)</label>
-                            <div class="input-wrapper">
-                                <i class="input-icon" data-lucide="banknote"></i>
-                                <input type="number" id="op-charges" class="form-control" placeholder="0.00" min="0" step="0.01" required>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">
-                            <i data-lucide="save"></i>
-                            <span>Save Operation Record</span>
-                        </button>
-                    </form>
-                </section>
-
-                <!-- Operations Data Table -->
-                <section class="data-card">
-                    <div class="table-header">
-                        <h2 class="table-title">
-                            <i data-lucide="list"></i>
-                            <span>Recorded Operations Log</span>
-                        </h2>
-                    </div>
-                    <div class="table-container">
-                        <table id="operations-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 70px;">No.</th>
-                                    <th>Patient Name</th>
-                                    <th>Procedure</th>
-                                    <th>Category</th>
-                                    <th>Date</th>
-                                    <th style="text-align: right;">Earned Amount (Rs.)</th>
-                                    <th style="width: 50px;"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="operations-table-body">
-                                <!-- Dynamic entries go here -->
-                            </tbody>
-                        </table>
-                        <div id="op-empty-state" class="empty-state">
-                            <div class="empty-icon">
-                                <i data-lucide="folder-open"></i>
-                            </div>
-                            <div class="empty-text">No operations recorded yet</div>
-                            <p style="font-size: 0.85rem;">Enter procedure details on the left to start tracking operations.</p>
-                        </div>
-                    </div>
-                </section>
             </div>
         </main>
     </div>
@@ -635,6 +459,6 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toast-container"></div>
 
-    <script src="app.js?v=1.0.5"></script>
+    <script src="app.js"></script>
 </body>
 </html>
