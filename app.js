@@ -80,12 +80,14 @@ const APPS_SCRIPT_CODE = `function doPost(e) {
 // Initialize App
 function initApp() {
     try {
-        // 1. Initialize Lucide Icons
-        if (window.lucide && typeof window.lucide.createIcons === 'function') {
-            window.lucide.createIcons();
-        }
+        // 1. Load state & start clock first
+        loadState();
+        startClock();
 
-        // 2. Set default date to today
+        // 2. Initial Render
+        renderAll();
+
+        // 3. Set default dates
         const todayStr = getTodayLocalDateString();
         const dateInput = document.getElementById('entry-date');
         if (dateInput) {
@@ -99,22 +101,22 @@ function initApp() {
             opDateInput.max = todayStr;
         }
 
-        // 3. Load data
-        loadState();
-
         // 4. Check for daily reset
         checkDailyReset();
 
         // 5. Setup event listeners
         setupEventListeners();
 
-        // 6. Start Clock
-        startClock();
-
-        // 7. Initial Render
-        renderAll();
+        // 6. Initialize Lucide Icons
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            try {
+                window.lucide.createIcons();
+            } catch (e) {
+                console.warn("Lucide render note:", e);
+            }
+        }
     } catch (err) {
-        console.error("App Initialization Warning:", err);
+        console.error("App Initialization Error:", err);
     }
 }
 
