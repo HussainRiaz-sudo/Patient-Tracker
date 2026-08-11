@@ -1130,7 +1130,7 @@ tr:hover td {
     margin: 0;
 }
 
-/* Print Specific Rules (Single-Page Target) */
+/* Print Specific Rules (Multi-Page Printable Document) */
 @media print {
     body * {
         visibility: hidden !important;
@@ -1154,6 +1154,15 @@ tr:hover td {
         border: none !important;
         padding: 0 !important;
         max-width: 100% !important;
+    }
+
+    .pdf-table tr {
+        page-break-inside: avoid !important;
+    }
+
+    .pdf-footer {
+        page-break-inside: avoid !important;
+        margin-top: 2.5rem !important;
     }
 
     @page {

@@ -463,7 +463,7 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toast-container"></div>
 
-    <!-- Printable Monthly Financial Statement Template (1 Page PDF Export) -->
+    <!-- Printable Monthly Financial Statement Template (Detailed PDF Export) -->
     <div id="monthly-pdf-template" class="pdf-print-only">
         <div class="pdf-statement-container">
             <div class="pdf-header">
@@ -475,7 +475,7 @@
                     </div>
                     <div>
                         <h1 id="pdf-hospital-name">Naeem Surgical</h1>
-                        <p class="pdf-subtitle">Official Monthly Settlement Statement</p>
+                        <p class="pdf-subtitle">Detailed Monthly Patient Log & Financial Settlement Report</p>
                     </div>
                 </div>
                 <div class="pdf-meta">
@@ -483,10 +483,6 @@
                     <div class="pdf-meta-item"><strong>Date Issued:</strong> <span id="pdf-issued-date">Aug 11, 2026</span></div>
                     <div class="pdf-meta-item"><strong>Practitioner:</strong> Dr. Naila</div>
                 </div>
-            </div>
-
-            <div class="pdf-notice-box">
-                <p><strong>PRIVACY & COMPLIANCE NOTICE:</strong> This document serves as an official monthly financial settlement summary. Individual patient names and clinical identifiers are excluded for privacy compliance.</p>
             </div>
 
             <div class="pdf-stats-grid">
@@ -513,32 +509,29 @@
             </div>
 
             <div class="pdf-table-section">
-                <h3>Financial Settlement Summary</h3>
+                <h3>Detailed Patient Intake & Settlement Ledger</h3>
                 <table class="pdf-table">
                     <thead>
                         <tr>
-                            <th>Description</th>
-                            <th style="text-align: center;">Rate / Basis</th>
-                            <th style="text-align: right;">Amount (PKR)</th>
+                            <th style="width: 50px;">No.</th>
+                            <th>Patient Name</th>
+                            <th>Date & Time</th>
+                            <th style="text-align: right;">Gross Charges (PKR)</th>
+                            <th id="pdf-th-doc" style="text-align: right;">Doctor Share 30% (PKR)</th>
+                            <th id="pdf-th-hosp" style="text-align: right;">Hospital Share 70% (PKR)</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Total Gross Patient Billings</td>
-                            <td style="text-align: center;">Gross Charges</td>
-                            <td style="text-align: right; font-weight: 600;" id="pdf-row-gross">Rs. 0.00</td>
-                        </tr>
-                        <tr>
-                            <td>Doctor Net Share Payout</td>
-                            <td style="text-align: center;" id="pdf-row-doc-rate">30%</td>
-                            <td style="text-align: right; font-weight: 700; color: #0284c7;" id="pdf-row-doc-share">Rs. 0.00</td>
-                        </tr>
-                        <tr>
-                            <td>Hospital Retention Share</td>
-                            <td style="text-align: center;" id="pdf-row-hosp-rate">70%</td>
-                            <td style="text-align: right; font-weight: 600; color: #475569;" id="pdf-row-hosp-share">Rs. 0.00</td>
-                        </tr>
+                    <tbody id="pdf-patient-table-body">
+                        <!-- Dynamic patient entries -->
                     </tbody>
+                    <tfoot>
+                        <tr style="font-weight: 700; background-color: #f1f5f9;">
+                            <td colspan="3" style="text-align: left; padding: 0.75rem;">Total Monthly Summary</td>
+                            <td style="text-align: right; padding: 0.75rem;" id="pdf-foot-gross">Rs. 0.00</td>
+                            <td style="text-align: right; color: #15803d; padding: 0.75rem;" id="pdf-foot-doc">Rs. 0.00</td>
+                            <td style="text-align: right; color: #0284c7; padding: 0.75rem;" id="pdf-foot-hosp">Rs. 0.00</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 

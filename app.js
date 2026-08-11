@@ -596,13 +596,17 @@ function handleAddPatient() {
     const initialSyncStatus = googleSheetUrl ? 'pending' : 'local';
     const cfg = HOSPITAL_CONFIGS[activeHospital] || HOSPITAL_CONFIGS.naeem;
 
+    const now = new Date();
+    const createdTimeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
     // Create records
     const dailyRecord = {
         id: patientId,
         dailyIndex: nextDailyIndex,
         name: name,
         date: date,
-        charges: charges
+        charges: charges,
+        createdTime: createdTimeStr
     };
 
     const ledgerRecord = {
@@ -613,7 +617,8 @@ function handleAddPatient() {
         charges: charges,
         split30: charges * cfg.doctorRate,
         split70: charges * cfg.hospitalRate,
-        syncStatus: initialSyncStatus
+        syncStatus: initialSyncStatus,
+        createdTime: createdTimeStr
     };
 
     // Push to lists
@@ -1037,7 +1042,7 @@ function exportLedgerToCSV() {
     showToast('CSV file downloaded successfully!', 'success');
 }
 
-// Export 1-Page Monthly Settlement Statement to PDF (Privacy Compliant)
+// Export Monthly Detailed Patient Log & Financial Settlement Report to PDF
 function exportMonthlyPDF() {
     const cfg = HOSPITAL_CONFIGS[activeHospital] || HOSPITAL_CONFIGS.naeem;
     const ledgerMonthSelect = document.getElementById('ledger-month-select');
@@ -1077,12 +1082,19 @@ function exportMonthlyPDF() {
         return;
     }
 
+    recordsToInclude.sort((a, b) => {
+        if (a.date !== b.date) {
+            return a.date.localeCompare(b.date);
+        }
+        return a.dailyIndex - b.dailyIndex;
+    });
+
     const totalCount = recordsToInclude.length;
     const grossTotal = recordsToInclude.reduce((sum, p) => sum + p.charges, 0);
     const doctorShare = recordsToInclude.reduce((sum, p) => sum + (p.split30 !== undefined ? p.split30 : p.charges * cfg.doctorRate), 0);
     const hospitalShare = recordsToInclude.reduce((sum, p) => sum + (p.split70 !== undefined ? p.split70 : p.charges * cfg.hospitalRate), 0);
 
-    // Populate PDF Elements
+    // Populate PDF Header & Summary
     const nameEl = document.getElementById('pdf-hospital-name');
     const monthEl = document.getElementById('pdf-month-name');
     const dateEl = document.getElementById('pdf-issued-date');
@@ -1092,12 +1104,8 @@ function exportMonthlyPDF() {
     const hospShareEl = document.getElementById('pdf-hospital-share');
     const docLabelEl = document.getElementById('pdf-doctor-label');
     const hospLabelEl = document.getElementById('pdf-hospital-label');
-
-    const rowGrossEl = document.getElementById('pdf-row-gross');
-    const rowDocRateEl = document.getElementById('pdf-row-doc-rate');
-    const rowDocShareEl = document.getElementById('pdf-row-doc-share');
-    const rowHospRateEl = document.getElementById('pdf-row-hosp-rate');
-    const rowHospShareEl = document.getElementById('pdf-row-hosp-share');
+    const thDocEl = document.getElementById('pdf-th-doc');
+    const thHospEl = document.getElementById('pdf-th-hosp');
 
     if (nameEl) nameEl.textContent = cfg.name;
     if (monthEl) monthEl.textContent = monthTitle;
@@ -1109,12 +1117,39 @@ function exportMonthlyPDF() {
 
     if (docLabelEl) docLabelEl.textContent = `Doctor Share (${cfg.doctorPercentLabel})`;
     if (hospLabelEl) hospLabelEl.textContent = `Hospital Share (${cfg.hospitalPercentLabel})`;
+    if (thDocEl) thDocEl.textContent = `Doctor Share ${cfg.doctorPercentLabel} (PKR)`;
+    if (thHospEl) thHospEl.textContent = `Hospital Share ${cfg.hospitalPercentLabel} (PKR)`;
 
-    if (rowGrossEl) rowGrossEl.textContent = formatCurrency(grossTotal);
-    if (rowDocRateEl) rowDocRateEl.textContent = cfg.doctorPercentLabel;
-    if (rowDocShareEl) rowDocShareEl.textContent = formatCurrency(doctorShare);
-    if (rowHospRateEl) rowHospRateEl.textContent = cfg.hospitalPercentLabel;
-    if (rowHospShareEl) rowHospShareEl.textContent = formatCurrency(hospitalShare);
+    // Populate Detailed Patient Table
+    const tbody = document.getElementById('pdf-patient-table-body');
+    if (tbody) {
+        tbody.innerHTML = '';
+        recordsToInclude.forEach((p, idx) => {
+            const dVal = (p.split30 !== undefined ? p.split30 : p.charges * cfg.doctorRate);
+            const hVal = (p.split70 !== undefined ? p.split70 : p.charges * cfg.hospitalRate);
+            const timeDisplay = p.createdTime ? ` | ${p.createdTime}` : '';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>#${idx + 1}</td>
+                <td style="font-weight: 600;">${escapeHtml(p.name)}</td>
+                <td>${formatDateDisplay(p.date)}${timeDisplay}</td>
+                <td style="text-align: right; font-weight: 500;">${formatCurrency(p.charges)}</td>
+                <td style="text-align: right; color: #15803d; font-weight: 500;">${formatCurrency(dVal)}</td>
+                <td style="text-align: right; color: #0284c7;">${formatCurrency(hVal)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Populate Table Footer Summary
+    const footGross = document.getElementById('pdf-foot-gross');
+    const footDoc = document.getElementById('pdf-foot-doc');
+    const footHosp = document.getElementById('pdf-foot-hosp');
+
+    if (footGross) footGross.textContent = formatCurrency(grossTotal);
+    if (footDoc) footDoc.textContent = formatCurrency(doctorShare);
+    if (footHosp) footHosp.textContent = formatCurrency(hospitalShare);
 
     // Trigger Print Dialog
     window.print();
