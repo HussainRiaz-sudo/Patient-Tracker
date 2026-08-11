@@ -400,6 +400,10 @@ function setupEventListeners() {
         });
     }
 
+    // Export PDF Statement
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
+    if (exportPdfBtn) exportPdfBtn.addEventListener('click', exportMonthlyPDF);
+
     // Export CSV
     const exportCsvBtn = document.getElementById('export-csv-btn');
     if (exportCsvBtn) exportCsvBtn.addEventListener('click', exportLedgerToCSV);
@@ -1031,6 +1035,89 @@ function exportLedgerToCSV() {
     document.body.removeChild(link);
 
     showToast('CSV file downloaded successfully!', 'success');
+}
+
+// Export 1-Page Monthly Settlement Statement to PDF (Privacy Compliant)
+function exportMonthlyPDF() {
+    const cfg = HOSPITAL_CONFIGS[activeHospital] || HOSPITAL_CONFIGS.naeem;
+    const ledgerMonthSelect = document.getElementById('ledger-month-select');
+    const startDateInput = document.getElementById('filter-start-date');
+    const endDateInput = document.getElementById('filter-end-date');
+
+    let targetMonth = ledgerMonthSelect ? ledgerMonthSelect.value : '';
+    let monthTitle = '';
+
+    if (targetMonth) {
+        const parts = targetMonth.split('-');
+        const dObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1);
+        monthTitle = dObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    } else {
+        const today = new Date();
+        monthTitle = today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+
+    const startDate = startDateInput ? startDateInput.value : '';
+    const endDate = endDateInput ? endDateInput.value : '';
+    const searchInput = document.getElementById('search-input');
+    const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+    const recordsToInclude = allPatients.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(searchQuery);
+        let matchesMonth = true;
+        if (targetMonth) matchesMonth = p.date && p.date.startsWith(targetMonth);
+        let matchesStartDate = true;
+        if (startDate) matchesStartDate = p.date >= startDate;
+        let matchesEndDate = true;
+        if (endDate) matchesEndDate = p.date <= endDate;
+        return matchesSearch && matchesMonth && matchesStartDate && matchesEndDate;
+    });
+
+    if (recordsToInclude.length === 0) {
+        showToast('No records match the selected month/filter to export PDF.', 'info');
+        return;
+    }
+
+    const totalCount = recordsToInclude.length;
+    const grossTotal = recordsToInclude.reduce((sum, p) => sum + p.charges, 0);
+    const doctorShare = recordsToInclude.reduce((sum, p) => sum + (p.split30 !== undefined ? p.split30 : p.charges * cfg.doctorRate), 0);
+    const hospitalShare = recordsToInclude.reduce((sum, p) => sum + (p.split70 !== undefined ? p.split70 : p.charges * cfg.hospitalRate), 0);
+
+    // Populate PDF Elements
+    const nameEl = document.getElementById('pdf-hospital-name');
+    const monthEl = document.getElementById('pdf-month-name');
+    const dateEl = document.getElementById('pdf-issued-date');
+    const countEl = document.getElementById('pdf-patient-count');
+    const grossEl = document.getElementById('pdf-gross-revenue');
+    const docShareEl = document.getElementById('pdf-doctor-share');
+    const hospShareEl = document.getElementById('pdf-hospital-share');
+    const docLabelEl = document.getElementById('pdf-doctor-label');
+    const hospLabelEl = document.getElementById('pdf-hospital-label');
+
+    const rowGrossEl = document.getElementById('pdf-row-gross');
+    const rowDocRateEl = document.getElementById('pdf-row-doc-rate');
+    const rowDocShareEl = document.getElementById('pdf-row-doc-share');
+    const rowHospRateEl = document.getElementById('pdf-row-hosp-rate');
+    const rowHospShareEl = document.getElementById('pdf-row-hosp-share');
+
+    if (nameEl) nameEl.textContent = cfg.name;
+    if (monthEl) monthEl.textContent = monthTitle;
+    if (dateEl) dateEl.textContent = formatDateDisplay(getTodayLocalDateString());
+    if (countEl) countEl.textContent = totalCount;
+    if (grossEl) grossEl.textContent = formatCurrency(grossTotal);
+    if (docShareEl) docShareEl.textContent = formatCurrency(doctorShare);
+    if (hospShareEl) hospShareEl.textContent = formatCurrency(hospitalShare);
+
+    if (docLabelEl) docLabelEl.textContent = `Doctor Share (${cfg.doctorPercentLabel})`;
+    if (hospLabelEl) hospLabelEl.textContent = `Hospital Share (${cfg.hospitalPercentLabel})`;
+
+    if (rowGrossEl) rowGrossEl.textContent = formatCurrency(grossTotal);
+    if (rowDocRateEl) rowDocRateEl.textContent = cfg.doctorPercentLabel;
+    if (rowDocShareEl) rowDocShareEl.textContent = formatCurrency(doctorShare);
+    if (rowHospRateEl) rowHospRateEl.textContent = cfg.hospitalPercentLabel;
+    if (rowHospShareEl) rowHospShareEl.textContent = formatCurrency(hospitalShare);
+
+    // Trigger Print Dialog
+    window.print();
 }
 
 // Modal Utilities

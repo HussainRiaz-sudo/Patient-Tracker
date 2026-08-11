@@ -32,8 +32,9 @@ A modern, responsive, offline-first web application designed for medical practit
   - **Filtered Hospital Share (PKR)** *(70% or 30%)*
 - **Search & Multi-Filter Engine:** Filter entries instantly by patient name, month, or custom date ranges (*From Date / To Date*).
 - **Data Export & Controls:**
-  - One-click **CSV Backup Export** labeled with the active hospital's name and split rates.
-  - Modal-protected **Delete All** ledger reset option per hospital.
+  - **🖨️ 1-Page Monthly PDF Statement Export:** Generates an official, privacy-compliant single-page settlement certificate for hospital administration, containing aggregate monthly revenue, doctor share, hospital share, and signature blocks while stripping all private patient names.
+  - **📊 CSV Backup Export:** One-click CSV download labeled with the active hospital's name and split rates.
+  - **🗑️ Delete All Records:** Modal-protected reset option per hospital.
 
 ### 📊 4. Analytics & Trends (Sheet 3)
 - **Interactive Visual Dashboard:** Powered by **Chart.js** with location-specific charting modes:
