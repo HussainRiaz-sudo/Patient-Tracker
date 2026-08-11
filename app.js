@@ -176,9 +176,9 @@ function loadState() {
     const storedActiveDay = localStorage.getItem(cfg.activeDayKey);
     const storedSheetUrl = localStorage.getItem(cfg.sheetsUrlKey);
 
-    dailyPatients = storedDaily ? JSON.parse(storedDaily) : [];
-    allPatients = storedLedger ? JSON.parse(storedLedger) : [];
-    operationsList = storedOps ? JSON.parse(storedOps) : [];
+    try { dailyPatients = storedDaily ? JSON.parse(storedDaily) : []; } catch (e) { dailyPatients = []; }
+    try { allPatients = storedLedger ? JSON.parse(storedLedger) : []; } catch (e) { allPatients = []; }
+    try { operationsList = storedOps ? JSON.parse(storedOps) : []; } catch (e) { operationsList = []; }
     activeDay = storedActiveDay || getTodayLocalDateString();
     googleSheetUrl = storedSheetUrl || '';
 
@@ -463,112 +463,131 @@ function setupEventListeners() {
     const disconnectBtn = document.getElementById('disconnect-sheet-btn');
     const copyScriptBtn = document.getElementById('copy-script-btn');
 
-    settingsBtn.addEventListener('click', () => {
-        // Load settings values
-        document.getElementById('apps-script-code').value = APPS_SCRIPT_CODE;
-        document.getElementById('google-sheet-url').value = googleSheetUrl;
-        
-        if (googleSheetUrl) {
-            disconnectBtn.style.display = 'block';
-        } else {
-            disconnectBtn.style.display = 'none';
-        }
-        
-        settingsModal.classList.add('active');
-    });
+    if (settingsBtn && settingsModal) {
+        settingsBtn.addEventListener('click', () => {
+            const codeBox = document.getElementById('apps-script-code');
+            const urlBox = document.getElementById('google-sheet-url');
+            if (codeBox) codeBox.value = APPS_SCRIPT_CODE;
+            if (urlBox) urlBox.value = googleSheetUrl;
+            
+            if (disconnectBtn) {
+                disconnectBtn.style.display = googleSheetUrl ? 'block' : 'none';
+            }
+            
+            settingsModal.classList.add('active');
+        });
+    }
 
     const closeSettingsModal = () => {
-        settingsModal.classList.remove('active');
+        if (settingsModal) settingsModal.classList.remove('active');
     };
 
-    closeSettings.addEventListener('click', closeSettingsModal);
-    cancelSettings.addEventListener('click', closeSettingsModal);
+    if (closeSettings) closeSettings.addEventListener('click', closeSettingsModal);
+    if (cancelSettings) cancelSettings.addEventListener('click', closeSettingsModal);
     
     // Copy Code snippet
-    copyScriptBtn.addEventListener('click', () => {
-        const textarea = document.getElementById('apps-script-code');
-        textarea.select();
-        document.execCommand('copy');
-        showToast('Apps Script code copied to clipboard!', 'success');
-    });
-
-    // Save and Test URL
-    saveSettings.addEventListener('click', async () => {
-        const urlInput = document.getElementById('google-sheet-url').value.trim();
-        if (!urlInput) {
-            googleSheetUrl = '';
-            saveState();
-            closeSettingsModal();
-            renderAll();
-            showToast('Google Sheet connection removed.', 'info');
-            return;
-        }
-
-        // Validate basic URL structure
-        if (!urlInput.startsWith('https://script.google.com/')) {
-            showToast('Please enter a valid Google Apps Script Web App URL.', 'danger');
-            return;
-        }
-
-        saveSettings.disabled = true;
-        saveSettings.querySelector('span').textContent = 'Testing...';
-
-        try {
-            // Attempt to send connection test
-            const response = await fetch(urlInput, {
-                method: 'POST',
-                mode: 'no-cors', // Avoids CORS blocker on redirect
-                body: JSON.stringify({ type: 'test' }),
-                headers: { 'Content-Type': 'text/plain' }
-            });
-
-            googleSheetUrl = urlInput;
-            saveState();
-            closeSettingsModal();
-            renderAll();
-            showToast('Google Sheet settings saved and test ping sent!', 'success');
-            
-            // Sync any existing pending unsynced records
-            syncAllPending();
-        } catch (err) {
-            console.error(err);
-            showToast('Connection failed. Please check the URL and try again.', 'danger');
-        } finally {
-            saveSettings.disabled = false;
-            saveSettings.querySelector('span').textContent = 'Test & Save';
-        }
-    });
-
-    // Disconnect Button
-    disconnectBtn.addEventListener('click', () => {
-        googleSheetUrl = '';
-        
-        // Reset all pending statuses back to local
-        allPatients.forEach(p => {
-            if (p.syncStatus === 'pending') {
-                p.syncStatus = 'local';
+    if (copyScriptBtn) {
+        copyScriptBtn.addEventListener('click', () => {
+            const textarea = document.getElementById('apps-script-code');
+            if (textarea) {
+                textarea.select();
+                document.execCommand('copy');
+                showToast('Apps Script code copied to clipboard!', 'success');
             }
         });
-        
-        saveState();
-        closeSettingsModal();
-        renderAll();
-        showToast('Disconnected from Google Sheet.', 'info');
-    });
+    }
+
+    // Save and Test URL
+    if (saveSettings) {
+        saveSettings.addEventListener('click', async () => {
+            const urlEl = document.getElementById('google-sheet-url');
+            const urlInput = urlEl ? urlEl.value.trim() : '';
+            if (!urlInput) {
+                googleSheetUrl = '';
+                saveState();
+                closeSettingsModal();
+                renderAll();
+                showToast('Google Sheet connection removed.', 'info');
+                return;
+            }
+
+            // Validate basic URL structure
+            if (!urlInput.startsWith('https://script.google.com/')) {
+                showToast('Please enter a valid Google Apps Script Web App URL.', 'danger');
+                return;
+            }
+
+            saveSettings.disabled = true;
+            const btnSpan = saveSettings.querySelector('span');
+            if (btnSpan) btnSpan.textContent = 'Testing...';
+
+            try {
+                // Attempt to send connection test
+                await fetch(urlInput, {
+                    method: 'POST',
+                    mode: 'no-cors', // Avoids CORS blocker on redirect
+                    body: JSON.stringify({ type: 'test' }),
+                    headers: { 'Content-Type': 'text/plain' }
+                });
+
+                googleSheetUrl = urlInput;
+                saveState();
+                closeSettingsModal();
+                renderAll();
+                showToast('Google Sheet settings saved and test ping sent!', 'success');
+                
+                // Sync any existing pending unsynced records
+                syncAllPending();
+            } catch (err) {
+                console.error(err);
+                showToast('Connection failed. Please check the URL and try again.', 'danger');
+            } finally {
+                saveSettings.disabled = false;
+                if (btnSpan) btnSpan.textContent = 'Test & Save';
+            }
+        });
+    }
+
+    // Disconnect Button
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', () => {
+            googleSheetUrl = '';
+            
+            // Reset all pending statuses back to local
+            allPatients.forEach(p => {
+                if (p.syncStatus === 'pending') {
+                    p.syncStatus = 'local';
+                }
+            });
+            
+            saveState();
+            closeSettingsModal();
+            renderAll();
+            showToast('Disconnected from Google Sheet.', 'info');
+        });
+    }
 
     // Confirmation Modal event hooks
-    document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
-    document.getElementById('confirm-modal').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('confirm-modal')) {
-            closeModal();
-        }
-    });
-    document.getElementById('modal-confirm-btn').addEventListener('click', () => {
-        if (pendingAction) {
-            pendingAction();
-            closeModal();
-        }
-    });
+    const cancelModalBtn = document.getElementById('modal-cancel-btn');
+    const confirmModalEl = document.getElementById('confirm-modal');
+    const confirmModalBtn = document.getElementById('modal-confirm-btn');
+
+    if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+    if (confirmModalEl) {
+        confirmModalEl.addEventListener('click', (e) => {
+            if (e.target === confirmModalEl) {
+                closeModal();
+            }
+        });
+    }
+    if (confirmModalBtn) {
+        confirmModalBtn.addEventListener('click', () => {
+            if (pendingAction) {
+                pendingAction();
+                closeModal();
+            }
+        });
+    }
 }
 
 // Add Patient Action
