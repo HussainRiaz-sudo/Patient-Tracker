@@ -1,6 +1,6 @@
 # 🩺 Dr Naila Patient Tracker & Financial Ledger
 
-A modern, responsive, offline-first web application designed for medical practitioners to manage patient intake across multiple clinical locations, automate location-specific revenue split calculations, archive records, and analyze clinical trends.
+A modern, responsive, offline-first web application designed for medical practitioners to manage patient intake across multiple clinical locations, automate location-specific revenue split calculations, archive records, generate itemized monthly PDF settlement reports, and analyze clinical trends.
 
 ---
 
@@ -32,18 +32,31 @@ A modern, responsive, offline-first web application designed for medical practit
   - **Filtered Hospital Share (PKR)** *(70% or 30%)*
 - **Search & Multi-Filter Engine:** Filter entries instantly by patient name, month, or custom date ranges (*From Date / To Date*).
 - **Data Export & Controls:**
-  - **🖨️ Detailed Monthly PDF Settlement Report:** Generates an official, comprehensive monthly settlement document for hospital administration containing total monthly revenue, doctor share, hospital share, signature verification blocks, and a complete itemized patient intake table including **Patient Serial Numbers (`#1`, `#2`, `#3`...)**, **Patient Names**, **Dates & Entry Timestamps**, **Gross Billing (PKR)**, **Doctor Share (PKR)**, and **Hospital Share (PKR)**.
   - **📊 CSV Backup Export:** One-click CSV download labeled with the active hospital's name and split rates.
   - **🗑️ Delete All Records:** Modal-protected reset option per hospital.
 
-### 📊 4. Analytics & Trends (Sheet 3)
+### 🖨️ 4. Itemized Monthly PDF Settlement Report Export
+- **Official Hospital Proof of Earnings:** One-click **"Print Monthly PDF"** button on Sheet 2 that generates an official, itemized financial settlement statement formatted for hospital administration.
+- **Complete Patient Intake Breakdown:**
+  - **Patient Serial Numbers (`#1`, `#2`, `#3`...)**
+  - **Patient Names**
+  - **Consultation Date & Creation Timestamp** *(e.g. Jul 15, 2026 | 02:30 PM)*
+  - **Gross Billing Charges (PKR)**
+  - **Doctor Share (PKR)** *(30% or 70%)*
+  - **Hospital Share (PKR)** *(70% or 30%)*
+- **Summary Stat Cards & Verification Footer:**
+  - Includes top summary cards for Total Volume, Gross Revenue, Doctor Payout, and Hospital Share.
+  - Features official signature verification blocks for **Dr. Naila (Practitioner)** and **Hospital Management**.
+- **Multi-Page Print Engine:** Styled with `@media print` CSS rules enabling seamless multi-page pagination with `page-break-inside: avoid` on table rows and signatures.
+
+### 📊 5. Analytics & Trends (Sheet 3)
 - **Interactive Visual Dashboard:** Powered by **Chart.js** with location-specific charting modes:
   - 📈 **Daily Patient Flow (Line Chart):** Tracks day-by-day patient volume for the selected month and hospital.
   - 📊 **Revenue & Split Breakdown (Stacked Bar Chart):** Visualizes daily earnings split dynamically formatted for the active hospital.
   - 📅 **Past 6-Month Volume Comparison:** Bar graph comparing total patient volume across the last 6 months.
 - **Dynamic Month Selector:** View analytics for the current month or switch to any historical month archived in the database.
 
-### 🔄 5. Offline-First & Google Sheets Sync
+### 🔄 6. Offline-First & Google Sheets Sync
 - **Standalone Local Storage:** Operates completely offline with zero internet dependency.
 - **Optional Background Sync:** Features a built-in settings modal with copyable **Google Apps Script** code to auto-sync pending records in the background to dedicated Google Sheets per hospital.
 
@@ -54,10 +67,10 @@ A modern, responsive, offline-first web application designed for medical practit
 | Component | Technology |
 |---|---|
 | **Core Structure** | HTML5 (Semantic Markup) |
-| **Styling & Theme** | Vanilla CSS3 (CSS Variables, Flexbox, CSS Grid) |
+| **Styling & Theme** | Vanilla CSS3 (CSS Variables, Flexbox, CSS Grid, `@media print`) |
 | **Logic & Engine** | Vanilla JavaScript (ES6+, LocalStorage API, Fetch API) |
 | **Data Visualization** | Chart.js (CDN) |
-| **Iconography** | Lucide Icons (CDN) |
+| **Iconography & Favicon** | Lucide Icons (CDN), Custom SVG Favicon |
 | **Deployment** | Vercel Static Hosting (`vercel.json`) |
 
 ---
