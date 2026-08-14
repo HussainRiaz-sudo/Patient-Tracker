@@ -932,6 +932,38 @@ tr:hover td {
     height: 280px;
 }
 
+/* Patient Name Link & History Trigger Styles */
+.patient-name-link {
+    color: var(--primary);
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.patient-name-link:hover {
+    color: var(--secondary);
+    text-decoration: underline;
+}
+
+.history-icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem 0.35rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.history-icon-btn:hover {
+    color: var(--primary);
+    background-color: var(--primary-light);
+}
+
 /* ==========================================================================
    Printable PDF Monthly Financial Statement Styles (Screen & Print)
    ========================================================================== */

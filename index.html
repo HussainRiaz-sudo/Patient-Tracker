@@ -466,6 +466,73 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toast-container"></div>
 
+    <!-- Patient History Modal -->
+    <div class="modal-overlay" id="patient-history-modal">
+        <div class="modal" style="max-width: 750px; width: 95%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="user-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="modal-title" id="history-patient-name" style="margin: 0;">Patient History</h3>
+                        <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);" id="history-patient-subtitle">Comprehensive Clinical & Billing Record</p>
+                    </div>
+                </div>
+                <button id="close-history-modal-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0.25rem;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div style="max-height: 480px; overflow-y: auto; padding-right: 0.25rem;">
+                <!-- History Stats Grid -->
+                <div class="stats-grid" style="margin-bottom: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Visits</div>
+                        <div class="stat-value" id="history-total-visits">0</div>
+                        <div class="stat-subtext" id="history-first-visit">First: -</div>
+                    </div>
+                    <div class="stat-card secondary">
+                        <div class="stat-label">Total Gross Charges</div>
+                        <div class="stat-value" id="history-total-charges">Rs. 0.00</div>
+                        <div class="stat-subtext" id="history-last-visit">Last: -</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-label">Total Doctor Share</div>
+                        <div class="stat-value" id="history-total-doctor">Rs. 0.00</div>
+                        <div class="stat-subtext">Earned Payout</div>
+                    </div>
+                </div>
+
+                <!-- Visit Timeline Table -->
+                <div class="table-container">
+                    <h4 style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <i data-lucide="history" style="width: 16px; height: 16px; color: var(--primary);"></i>
+                        <span>Visit History Timeline</span>
+                    </h4>
+                    <table class="pdf-table" style="font-size: 0.85rem; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">Visit</th>
+                                <th>Date & Time</th>
+                                <th>Clinical Facility</th>
+                                <th style="text-align: right;">Gross Charges (Rs.)</th>
+                                <th style="text-align: right;">Doctor Share (Rs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-timeline-body">
+                            <!-- Dynamic timeline entries -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 1rem;">
+                <button class="btn btn-outline-primary modal-btn" id="close-history-btn" style="width: auto;">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Printable Monthly Financial Statement Template (Detailed PDF Export) -->
     <div id="monthly-pdf-template" class="pdf-print-only">
         <div class="pdf-statement-container">

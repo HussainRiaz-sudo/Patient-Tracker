@@ -608,6 +608,23 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Patient History Modal Close Event Hooks
+    const closeHistModalBtn = document.getElementById('close-history-modal-btn');
+    const closeHistBtn = document.getElementById('close-history-btn');
+    const histModalEl = document.getElementById('patient-history-modal');
+
+    const closeHistModal = () => {
+        if (histModalEl) histModalEl.classList.remove('active');
+    };
+
+    if (closeHistModalBtn) closeHistModalBtn.addEventListener('click', closeHistModal);
+    if (closeHistBtn) closeHistBtn.addEventListener('click', closeHistModal);
+    if (histModalEl) {
+        histModalEl.addEventListener('click', (e) => {
+            if (e.target === histModalEl) closeHistModal();
+        });
+    }
 }
 
 // Add Patient Action
@@ -871,7 +888,12 @@ function renderDailyTable() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><span class="patient-badge">#${p.dailyIndex}</span></td>
-            <td style="font-weight: 500;">${escapeHtml(p.name)}</td>
+            <td>
+                <span class="patient-name-link" data-name="${escapeHtml(p.name)}" title="Click to view full patient history">
+                    <span>${escapeHtml(p.name)}</span>
+                    <i data-lucide="external-link" style="width:13px;height:13px;"></i>
+                </span>
+            </td>
             <td>${formatDateDisplay(p.date)}</td>
             <td class="charge-text" style="text-align: right;">${formatCurrency(p.charges)}</td>
             <td style="text-align: right;">
@@ -881,6 +903,13 @@ function renderDailyTable() {
             </td>
         `;
         tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.patient-name-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const name = link.getAttribute('data-name');
+            openPatientHistory(name);
+        });
     });
 
     tbody.querySelectorAll('.delete-row-btn').forEach(btn => {
@@ -1004,7 +1033,12 @@ function renderLedgerTable() {
 
         tr.innerHTML = `
             <td><span class="patient-badge">#${p.dailyIndex}</span></td>
-            <td style="font-weight: 500;">${escapeHtml(p.name)}</td>
+            <td>
+                <span class="patient-name-link" data-name="${escapeHtml(p.name)}" title="Click to view full patient history">
+                    <span>${escapeHtml(p.name)}</span>
+                    <i data-lucide="external-link" style="width:13px;height:13px;"></i>
+                </span>
+            </td>
             <td>${formatDateDisplay(p.date)}</td>
             <td class="charge-text" style="text-align: right;">${formatCurrency(p.charges)}</td>
             <td class="charge-text" style="text-align: right; color: var(--success); font-weight: 500;">${formatCurrency(doctorVal)}</td>
@@ -1017,6 +1051,13 @@ function renderLedgerTable() {
             </td>
         `;
         tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.patient-name-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const name = link.getAttribute('data-name');
+            openPatientHistory(name);
+        });
     });
 
     tbody.querySelectorAll('.delete-ledger-row-btn').forEach(btn => {
@@ -1193,6 +1234,99 @@ function exportMonthlyPDF() {
 
     // Trigger Print Dialog
     window.print();
+}
+
+// Open Patient History & Clinical Record Modal (Retroactive for all past & current patients)
+function openPatientHistory(patientName) {
+    if (!patientName) return;
+
+    const targetNameClean = patientName.trim().toLowerCase();
+
+    // 1. Gather all records across both Naeem Surgical and Cavalry Hospital from LocalStorage
+    const naeemLedgerStr = localStorage.getItem('doctor_naeem_all_patients');
+    const cavalryLedgerStr = localStorage.getItem('doctor_cavalry_all_patients');
+
+    let naeemRecords = [];
+    let cavalryRecords = [];
+
+    try { naeemRecords = naeemLedgerStr ? JSON.parse(naeemLedgerStr) : []; } catch (e) { naeemRecords = []; }
+    try { cavalryRecords = cavalryLedgerStr ? JSON.parse(cavalryLedgerStr) : []; } catch (e) { cavalryRecords = []; }
+
+    // Add hospital tag to each record
+    naeemRecords.forEach(r => { r.hospitalName = 'Naeem Surgical'; r.hospId = 'naeem'; });
+    cavalryRecords.forEach(r => { r.hospitalName = 'Cavalry Hospital'; r.hospId = 'cavalry'; });
+
+    // Combine all records
+    const combinedAll = [...naeemRecords, ...cavalryRecords];
+
+    // Filter matching patient name
+    const patientVisits = combinedAll.filter(r => r.name && r.name.trim().toLowerCase() === targetNameClean);
+
+    if (patientVisits.length === 0) {
+        showToast(`No past records found for "${patientName}".`, 'info');
+        return;
+    }
+
+    // Sort chronologically by date and ID
+    patientVisits.sort((a, b) => {
+        if (a.date !== b.date) {
+            return a.date.localeCompare(b.date);
+        }
+        return (a.dailyIndex || 0) - (b.dailyIndex || 0);
+    });
+
+    const totalVisits = patientVisits.length;
+    const grossTotal = patientVisits.reduce((sum, p) => sum + (p.charges || 0), 0);
+    const doctorTotal = patientVisits.reduce((sum, p) => {
+        const rate = (p.hospId === 'cavalry') ? 0.70 : 0.30;
+        return sum + (p.split30 !== undefined ? p.split30 : (p.charges || 0) * rate);
+    }, 0);
+
+    const firstVisitDate = formatDateDisplay(patientVisits[0].date);
+    const lastVisitDate = formatDateDisplay(patientVisits[patientVisits.length - 1].date);
+
+    // Populate Modal Elements
+    const titleEl = document.getElementById('history-patient-name');
+    const visitsEl = document.getElementById('history-total-visits');
+    const chargesEl = document.getElementById('history-total-charges');
+    const doctorEl = document.getElementById('history-total-doctor');
+    const firstEl = document.getElementById('history-first-visit');
+    const lastEl = document.getElementById('history-last-visit');
+    const tbody = document.getElementById('history-timeline-body');
+
+    if (titleEl) titleEl.textContent = `Patient Record: ${patientName}`;
+    if (visitsEl) visitsEl.textContent = totalVisits;
+    if (chargesEl) chargesEl.textContent = formatCurrency(grossTotal);
+    if (doctorEl) doctorEl.textContent = formatCurrency(doctorTotal);
+    if (firstEl) firstEl.textContent = `First: ${firstVisitDate}`;
+    if (lastEl) lastEl.textContent = `Last: ${lastVisitDate}`;
+
+    if (tbody) {
+        tbody.innerHTML = '';
+        patientVisits.forEach((v, index) => {
+            const rate = (v.hospId === 'cavalry') ? 0.70 : 0.30;
+            const docVal = (v.split30 !== undefined ? v.split30 : (v.charges || 0) * rate);
+            const timeDisplay = v.createdTime ? ` | ${v.createdTime}` : '';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="patient-badge">#${index + 1}</span></td>
+                <td>${formatDateDisplay(v.date)}${timeDisplay}</td>
+                <td><span style="font-weight: 500;">${escapeHtml(v.hospitalName)}</span></td>
+                <td style="text-align: right; font-weight: 500;">${formatCurrency(v.charges)}</td>
+                <td style="text-align: right; color: var(--success); font-weight: 600;">${formatCurrency(docVal)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    const histModalEl = document.getElementById('patient-history-modal');
+    if (histModalEl) {
+        histModalEl.classList.add('active');
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            try { window.lucide.createIcons(); } catch (e) {}
+        }
+    }
 }
 
 // Modal Utilities

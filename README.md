@@ -49,7 +49,12 @@ A modern, responsive, offline-first web application designed for medical practit
   - Features official signature verification blocks for **Dr. Naila (Practitioner)** and **Hospital Management**.
 - **Multi-Page Print Engine:** Styled with `@media print` CSS rules enabling seamless multi-page pagination with `page-break-inside: avoid` on table rows and signatures.
 
-### 📊 5. Analytics & Trends (Sheet 3)
+### 👤 5. Patient History & Clinical Record Modal
+- **Retroactive Record Scanner:** Tapping any patient name on **Sheet 1 (Daily Log)** or **Sheet 2 (All-Time Ledger)** aggregates all past and present visits across both hospital practices (*Naeem Surgical* & *Cavalry Hospital*).
+- **Comprehensive Patient Profile:** Displays total visit count, cumulative gross charges, total doctor earnings, and first/last visit timestamps.
+- **Chronological Timeline Table:** Lists all historical consultations with date/time, hospital facility, gross charges, and net payout.
+
+### 📊 6. Analytics & Trends (Sheet 3)
 - **Interactive Visual Dashboard:** Powered by **Chart.js** with location-specific charting modes:
   - 📈 **Daily Patient Flow (Line Chart):** Tracks day-by-day patient volume for the selected month and hospital.
   - 📊 **Revenue & Split Breakdown (Stacked Bar Chart):** Visualizes daily earnings split dynamically formatted for the active hospital.
