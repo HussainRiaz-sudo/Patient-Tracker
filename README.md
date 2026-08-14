@@ -56,9 +56,10 @@ A modern, responsive, offline-first web application designed for medical practit
   - 📅 **Past 6-Month Volume Comparison:** Bar graph comparing total patient volume across the last 6 months.
 - **Dynamic Month Selector:** View analytics for the current month or switch to any historical month archived in the database.
 
-### 🔄 6. Offline-First & Google Sheets Sync
-- **Standalone Local Storage:** Operates completely offline with zero internet dependency.
-- **Optional Background Sync:** Features a built-in settings modal with copyable **Google Apps Script** code to auto-sync pending records in the background to dedicated Google Sheets per hospital.
+### 🌓 7. Dark Mode & Light Mode Theme Engine
+- **1-Tap Header Toggle:** Sun/Moon toggle button in top bar header for seamless switching.
+- **Persistent Theme Preference:** Remembers user preference in `LocalStorage` (`doctor_theme`) to prevent white-screen flashes on load.
+- **Chart.js Theme Adaptation:** Dynamically updates graph gridlines and labels for dark/light themes.
 
 ---
 

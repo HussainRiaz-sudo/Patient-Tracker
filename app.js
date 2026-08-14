@@ -1,3 +1,6 @@
+// Theme State
+let currentTheme = localStorage.getItem('doctor_theme') || 'dark';
+
 // App State & Multi-Hospital Configurations
 let activeHospital = 'naeem'; // 'naeem' or 'cavalry'
 
@@ -74,9 +77,42 @@ const APPS_SCRIPT_CODE = `function doPost(e) {
   }
 }`;
 
+// Initialize App Theme
+function applyTheme(theme) {
+    currentTheme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('doctor_theme', theme);
+
+    const btn = document.getElementById('theme-toggle-btn');
+    if (btn) {
+        btn.setAttribute('title', theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme');
+        btn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            try { window.lucide.createIcons(); } catch (e) {}
+        }
+    }
+
+    const sheet3 = document.getElementById('sheet3-content');
+    if (sheet3 && sheet3.classList.contains('active')) {
+        renderAnalytics();
+    }
+}
+
+function toggleTheme() {
+    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(nextTheme);
+    showToast(`Switched to ${nextTheme === 'dark' ? 'Dark' : 'Light'} Mode`, 'info');
+}
+
+// Immediately apply theme on script load before DOM render to prevent flash
+applyTheme(currentTheme);
+
 // Initialize App
 function initApp() {
     try {
+        // 0. Ensure theme icon is set
+        applyTheme(currentTheme);
+
         // 1. Load state & start clock
         loadState();
         startClock();
@@ -429,6 +465,10 @@ function setupEventListeners() {
             );
         });
     }
+
+    // Theme Toggle Button
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
 
     // Sync All Button
     const syncAllBtn = document.getElementById('sync-all-btn');
@@ -1341,6 +1381,10 @@ function renderAnalytics() {
         }
     });
 
+    const isDark = currentTheme === 'dark';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
+    const textColor = isDark ? '#94a3b8' : '#64748b';
+
     if (flowChartInstance) {
         flowChartInstance.destroy();
     }
@@ -1354,12 +1398,12 @@ function renderAnalytics() {
                 datasets: [{
                     label: 'Daily Patient Volume',
                     data: dailyPatientCounts,
-                    borderColor: '#0284c7',
-                    backgroundColor: 'rgba(2, 132, 199, 0.15)',
+                    borderColor: isDark ? '#38bdf8' : '#0284c7',
+                    backgroundColor: isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(2, 132, 199, 0.15)',
                     fill: true,
                     tension: 0.3,
                     pointRadius: 4,
-                    pointBackgroundColor: '#0284c7'
+                    pointBackgroundColor: isDark ? '#38bdf8' : '#0284c7'
                 }]
             },
             options: {
@@ -1367,7 +1411,8 @@ function renderAnalytics() {
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                    x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                    y: { beginAtZero: true, ticks: { precision: 0, color: textColor }, grid: { color: gridColor } }
                 }
             }
         });
@@ -1387,22 +1432,22 @@ function renderAnalytics() {
                     {
                         label: `Doctor Share (${cfg.doctorPercentLabel})`,
                         data: dailyDoctorShares,
-                        backgroundColor: '#10b981'
+                        backgroundColor: isDark ? '#34d399' : '#10b981'
                     },
                     {
                         label: `Hospital Share (${cfg.hospitalPercentLabel})`,
                         data: dailyHospitalShares,
-                        backgroundColor: '#0284c7'
+                        backgroundColor: isDark ? '#38bdf8' : '#0284c7'
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'top' } },
+                plugins: { legend: { position: 'top', labels: { color: textColor } } },
                 scales: {
-                    x: { stacked: true },
-                    y: { stacked: true, beginAtZero: true }
+                    x: { stacked: true, ticks: { color: textColor }, grid: { color: gridColor } },
+                    y: { stacked: true, beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } }
                 }
             }
         });
