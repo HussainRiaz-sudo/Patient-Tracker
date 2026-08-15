@@ -80,6 +80,14 @@ A modern, responsive, offline-first web application designed for medical practit
   - 🟢 **Scheduled** (Blue Standard Priority)
   - ⚪ **Mark Completed Toggle** (Green Done Status)
 
+### 🛏️ 9. Naeem Surgical Admit & Procedures Sheet
+- **Exclusive Hospital Visibility:** Tab 5 (**Admit and Procedures**) is scoped exclusively to **Naeem Surgical** (`activeHospital === 'naeem'`) and hides when Cavalry Hospital is active.
+- **Ward Patient Intake:** Allows logging admitted patients with admission dates and autocomplete patient matching.
+- **Interactive Completion Decision Modal ("Mark Done"):**
+  - Prompts: *"Was the procedure done by you?"*
+  - **YES (Procedure Performed by Doctor):** Prompts for Procedure Name & Fee (PKR). Posts to Sheet 2 Ledger as **100% Doctor Share** tagged with purple `Procedure` badge.
+  - **NO (Admission Only):** Prompts for Admission Fee (PKR). Posts to Sheet 2 Ledger as **100% Doctor Share** tagged with sky-blue `Admission Fee` badge.
+
 ---
 
 ## 🛠️ Technology Stack

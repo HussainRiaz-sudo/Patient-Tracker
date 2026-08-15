@@ -34,12 +34,14 @@ const HOSPITAL_CONFIGS = {
 let dailyPatients = [];
 let allPatients = [];
 let cavalryProcedures = [];
+let naeemAdmitProcedures = [];
 let activeDay = '';
 let googleSheetUrl = '';
 
 // Modal confirmation state
 let pendingAction = null;
 let pendingProcToCompleteId = null;
+let pendingNaeemAdmitId = null;
 
 // Apps Script Code Snippet
 const APPS_SCRIPT_CODE = `function doPost(e) {
@@ -135,6 +137,11 @@ function initApp() {
             procDateInput.value = todayStr;
         }
 
+        const naeemAdmitDateInput = document.getElementById('naeem-admit-date');
+        if (naeemAdmitDateInput) {
+            naeemAdmitDateInput.value = todayStr;
+        }
+
         // 4. Check for daily reset
         checkDailyReset();
 
@@ -209,12 +216,14 @@ function loadState() {
     const storedDaily = localStorage.getItem(cfg.dailyKey);
     const storedLedger = localStorage.getItem(cfg.ledgerKey);
     const storedProcedures = localStorage.getItem('doctor_cavalry_procedures');
+    const storedNaeemAdmit = localStorage.getItem('doctor_naeem_admit_procedures');
     const storedActiveDay = localStorage.getItem(cfg.activeDayKey);
     const storedSheetUrl = localStorage.getItem(cfg.sheetsUrlKey);
 
     try { dailyPatients = storedDaily ? JSON.parse(storedDaily) : []; } catch (e) { dailyPatients = []; }
     try { allPatients = storedLedger ? JSON.parse(storedLedger) : []; } catch (e) { allPatients = []; }
     try { cavalryProcedures = storedProcedures ? JSON.parse(storedProcedures) : []; } catch (e) { cavalryProcedures = []; }
+    try { naeemAdmitProcedures = storedNaeemAdmit ? JSON.parse(storedNaeemAdmit) : []; } catch (e) { naeemAdmitProcedures = []; }
     activeDay = storedActiveDay || getTodayLocalDateString();
     googleSheetUrl = storedSheetUrl || '';
 
@@ -230,6 +239,7 @@ function saveState() {
     localStorage.setItem(cfg.dailyKey, JSON.stringify(dailyPatients));
     localStorage.setItem(cfg.ledgerKey, JSON.stringify(allPatients));
     localStorage.setItem('doctor_cavalry_procedures', JSON.stringify(cavalryProcedures));
+    localStorage.setItem('doctor_naeem_admit_procedures', JSON.stringify(naeemAdmitProcedures));
     localStorage.setItem(cfg.activeDayKey, activeDay);
     if (googleSheetUrl) {
         localStorage.setItem(cfg.sheetsUrlKey, googleSheetUrl);
@@ -254,7 +264,9 @@ function updateHospitalSwitcherUI() {
     const naeemBtn = document.getElementById('hospital-naeem-btn');
     const cavalryBtn = document.getElementById('hospital-cavalry-btn');
     const tab4Btn = document.getElementById('tab4-btn');
+    const tab5Btn = document.getElementById('tab5-btn');
     const sheet4 = document.getElementById('sheet4-content');
+    const sheet5 = document.getElementById('sheet5-content');
 
     if (naeemBtn && cavalryBtn) {
         naeemBtn.classList.toggle('active', activeHospital === 'naeem');
@@ -266,21 +278,41 @@ function updateHospitalSwitcherUI() {
             tab4Btn.style.display = 'inline-flex';
         } else {
             tab4Btn.style.display = 'none';
-            // If Naeem is selected and Tab 4 was active, switch to Tab 1
             if (tab4Btn.classList.contains('active')) {
                 const tab1Btn = document.getElementById('tab1-btn');
                 const sheet1 = document.getElementById('sheet1-content');
                 if (tab1Btn && sheet1) {
-                    [tab1Btn, document.getElementById('tab2-btn'), document.getElementById('tab3-btn'), tab4Btn].forEach(b => {
+                    [tab1Btn, document.getElementById('tab2-btn'), document.getElementById('tab3-btn'), tab4Btn, tab5Btn].forEach(b => {
                         if (b) b.classList.toggle('active', b === tab1Btn);
                     });
-                    [sheet1, document.getElementById('sheet2-content'), document.getElementById('sheet3-content'), sheet4].forEach(s => {
+                    [sheet1, document.getElementById('sheet2-content'), document.getElementById('sheet3-content'), sheet4, sheet5].forEach(s => {
                         if (s) s.classList.toggle('active', s === sheet1);
                     });
                 }
             }
         }
     }
+
+    if (tab5Btn) {
+        if (activeHospital === 'naeem') {
+            tab5Btn.style.display = 'inline-flex';
+        } else {
+            tab5Btn.style.display = 'none';
+            if (tab5Btn.classList.contains('active')) {
+                const tab1Btn = document.getElementById('tab1-btn');
+                const sheet1 = document.getElementById('sheet1-content');
+                if (tab1Btn && sheet1) {
+                    [tab1Btn, document.getElementById('tab2-btn'), document.getElementById('tab3-btn'), tab4Btn, tab5Btn].forEach(b => {
+                        if (b) b.classList.toggle('active', b === tab1Btn);
+                    });
+                    [sheet1, document.getElementById('sheet2-content'), document.getElementById('sheet3-content'), sheet4, sheet5].forEach(s => {
+                        if (s) s.classList.toggle('active', s === sheet1);
+                    });
+                }
+            }
+        }
+    }
+
     updateDynamicLabels();
 }
 
@@ -356,20 +388,22 @@ function setupEventListeners() {
     const tab2Btn = document.getElementById('tab2-btn');
     const tab3Btn = document.getElementById('tab3-btn');
     const tab4Btn = document.getElementById('tab4-btn');
+    const tab5Btn = document.getElementById('tab5-btn');
     const sheet1 = document.getElementById('sheet1-content');
     const sheet2 = document.getElementById('sheet2-content');
     const sheet3 = document.getElementById('sheet3-content');
     const sheet4 = document.getElementById('sheet4-content');
+    const sheet5 = document.getElementById('sheet5-content');
 
     const switchTab = (activeBtn, activeSheet, renderFn) => {
-        [tab1Btn, tab2Btn, tab3Btn, tab4Btn].forEach(b => {
+        [tab1Btn, tab2Btn, tab3Btn, tab4Btn, tab5Btn].forEach(b => {
             if (b) {
                 const isActive = (b === activeBtn);
                 b.classList.toggle('active', isActive);
                 b.setAttribute('aria-selected', isActive ? 'true' : 'false');
             }
         });
-        [sheet1, sheet2, sheet3, sheet4].forEach(s => {
+        [sheet1, sheet2, sheet3, sheet4, sheet5].forEach(s => {
             if (s) s.classList.toggle('active', s === activeSheet);
         });
         if (renderFn) renderFn();
@@ -379,6 +413,7 @@ function setupEventListeners() {
     if (tab2Btn) tab2Btn.addEventListener('click', () => switchTab(tab2Btn, sheet2, renderLedgerTable));
     if (tab3Btn) tab3Btn.addEventListener('click', () => switchTab(tab3Btn, sheet3, renderAnalytics));
     if (tab4Btn) tab4Btn.addEventListener('click', () => switchTab(tab4Btn, sheet4, renderCavalryProcedures));
+    if (tab5Btn) tab5Btn.addEventListener('click', () => switchTab(tab5Btn, sheet5, renderNaeemAdmitProcedures));
 
     // Hospital Switcher Buttons
     const naeemBtn = document.getElementById('hospital-naeem-btn');
@@ -418,6 +453,15 @@ function setupEventListeners() {
         procForm.addEventListener('submit', (e) => {
             e.preventDefault();
             handleAddProcedure();
+        });
+    }
+
+    // Naeem Admit Form Submission
+    const naeemAdmitForm = document.getElementById('naeem-admit-form');
+    if (naeemAdmitForm) {
+        naeemAdmitForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleAddNaeemAdmit();
         });
     }
 
@@ -706,6 +750,103 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Naeem Admit Decision Modal Hooks
+    const naeemModalEl = document.getElementById('naeem-admit-modal');
+    const closeNaeemModalBtn = document.getElementById('close-naeem-modal-btn');
+    const naeemYesBtn = document.getElementById('naeem-choice-yes-btn');
+    const naeemNoBtn = document.getElementById('naeem-choice-no-btn');
+    const naeemProcBackBtn = document.getElementById('naeem-proc-back-btn');
+    const naeemAdmitBackBtn = document.getElementById('naeem-admit-back-btn');
+    const naeemProcForm = document.getElementById('naeem-proc-form');
+    const naeemAdmitFeeForm = document.getElementById('naeem-admit-fee-form');
+
+    const closeNaeemModal = () => {
+        if (naeemModalEl) naeemModalEl.classList.remove('active');
+        pendingNaeemAdmitId = null;
+    };
+
+    if (closeNaeemModalBtn) closeNaeemModalBtn.addEventListener('click', closeNaeemModal);
+    if (naeemModalEl) {
+        naeemModalEl.addEventListener('click', (e) => {
+            if (e.target === naeemModalEl) closeNaeemModal();
+        });
+    }
+
+    if (naeemYesBtn) {
+        naeemYesBtn.addEventListener('click', () => {
+            const step1 = document.getElementById('naeem-step-1');
+            const procForm = document.getElementById('naeem-proc-form');
+            if (step1) step1.style.display = 'none';
+            if (procForm) procForm.style.display = 'block';
+        });
+    }
+
+    if (naeemNoBtn) {
+        naeemNoBtn.addEventListener('click', () => {
+            const step1 = document.getElementById('naeem-step-1');
+            const admitFeeForm = document.getElementById('naeem-admit-fee-form');
+            if (step1) step1.style.display = 'none';
+            if (admitFeeForm) admitFeeForm.style.display = 'block';
+        });
+    }
+
+    if (naeemProcBackBtn) {
+        naeemProcBackBtn.addEventListener('click', () => {
+            const step1 = document.getElementById('naeem-step-1');
+            const procForm = document.getElementById('naeem-proc-form');
+            if (procForm) procForm.style.display = 'none';
+            if (step1) step1.style.display = 'block';
+        });
+    }
+
+    if (naeemAdmitBackBtn) {
+        naeemAdmitBackBtn.addEventListener('click', () => {
+            const step1 = document.getElementById('naeem-step-1');
+            const admitFeeForm = document.getElementById('naeem-admit-fee-form');
+            if (admitFeeForm) admitFeeForm.style.display = 'none';
+            if (step1) step1.style.display = 'block';
+        });
+    }
+
+    if (naeemProcForm) {
+        naeemProcForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const typeInput = document.getElementById('naeem-proc-type-input');
+            const feeInput = document.getElementById('naeem-proc-fee-input');
+
+            const procType = typeInput ? typeInput.value.trim() : '';
+            const feeVal = feeInput ? parseFloat(feeInput.value) : 0;
+
+            if (!procType || isNaN(feeVal) || feeVal < 0) {
+                showToast('Please enter a valid procedure name and fee.', 'danger');
+                return;
+            }
+
+            if (pendingNaeemAdmitId) {
+                confirmNaeemProcedureCompletion(pendingNaeemAdmitId, procType, feeVal);
+                closeNaeemModal();
+            }
+        });
+    }
+
+    if (naeemAdmitFeeForm) {
+        naeemAdmitFeeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const feeInput = document.getElementById('naeem-admit-fee-input');
+            const feeVal = feeInput ? parseFloat(feeInput.value) : 0;
+
+            if (isNaN(feeVal) || feeVal < 0) {
+                showToast('Please enter a valid admission fee.', 'danger');
+                return;
+            }
+
+            if (pendingNaeemAdmitId) {
+                confirmNaeemAdmissionFeeCompletion(pendingNaeemAdmitId, feeVal);
+                closeNaeemModal();
+            }
+        });
+    }
 }
 
 // Add Patient Action
@@ -899,6 +1040,9 @@ function renderAll() {
     populateAnalyticsMonthSelect();
     if (activeHospital === 'cavalry') {
         renderCavalryProcedures();
+    }
+    if (activeHospital === 'naeem') {
+        renderNaeemAdmitProcedures();
     }
     const sheet3 = document.getElementById('sheet3-content');
     if (sheet3 && sheet3.classList.contains('active')) {
@@ -1115,9 +1259,12 @@ function renderLedgerTable() {
         const doctorVal = (p.split30 !== undefined) ? p.split30 : (p.charges * cfg.doctorRate);
         const hospitalVal = (p.split70 !== undefined) ? p.split70 : (p.charges * cfg.hospitalRate);
 
-        const badgeTag = p.isProcedure 
-            ? '<span class="procedure-badge" title="100% Doctor Payout Procedure"><i data-lucide="stethoscope" style="width:12px;height:12px;"></i> Procedure</span>'
-            : `<span class="patient-badge">#${p.dailyIndex}</span>`;
+        let badgeTag = `<span class="patient-badge">#${p.dailyIndex}</span>`;
+        if (p.isProcedure) {
+            badgeTag = '<span class="procedure-badge" title="100% Doctor Payout Procedure"><i data-lucide="stethoscope" style="width:12px;height:12px;"></i> Procedure</span>';
+        } else if (p.isAdmissionFee) {
+            badgeTag = '<span class="admission-badge" title="100% Doctor Payout Admission Fee"><i data-lucide="bed" style="width:12px;height:12px;"></i> Admission Fee</span>';
+        }
 
         tr.innerHTML = `
             <td>${badgeTag}</td>
@@ -1652,6 +1799,270 @@ function renderCavalryProcedures() {
         btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-id');
             handleDeleteProcedure(id);
+        });
+    });
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try { window.lucide.createIcons(); } catch (e) {}
+    }
+}
+
+// Naeem Surgical Admit & Procedures Feature Functions
+function handleAddNaeemAdmit() {
+    const patientInput = document.getElementById('naeem-admit-patient-name');
+    const dateInput = document.getElementById('naeem-admit-date');
+
+    const patientName = patientInput ? patientInput.value.trim() : '';
+    const admitDate = dateInput ? dateInput.value : '';
+
+    if (!patientName || !admitDate) {
+        showToast('Please fill out patient name and admission date.', 'danger');
+        return;
+    }
+
+    const admitRecord = {
+        id: Date.now().toString(),
+        patientName: patientName,
+        admitDate: admitDate,
+        status: 'admitted',
+        createdDate: getTodayLocalDateString()
+    };
+
+    naeemAdmitProcedures.unshift(admitRecord);
+    saveState();
+
+    if (patientInput) patientInput.value = '';
+    if (dateInput) dateInput.value = getTodayLocalDateString();
+
+    renderNaeemAdmitProcedures();
+    showToast(`Admitted patient "${patientName}" added!`, 'success');
+}
+
+function handleToggleNaeemAdmitStatus(admitId) {
+    const record = naeemAdmitProcedures.find(r => r.id === admitId);
+    if (!record) return;
+
+    if (record.status === 'completed') {
+        // Toggle back to admitted: confirm prompt
+        openModal(
+            'Revert Patient Status to Admitted?',
+            `Revert patient "${record.patientName}" back to admitted status? (Associated ledger record will be removed).`,
+            () => {
+                record.status = 'admitted';
+                delete record.fee;
+                delete record.entryType;
+                delete record.procedureName;
+                // Remove corresponding entry from Naeem allPatients ledger
+                allPatients = allPatients.filter(p => p.admitId !== admitId);
+                saveState();
+                renderAll();
+                showToast(`Status for "${record.patientName}" reverted to Admitted.`, 'info');
+            }
+        );
+    } else {
+        // Open decision modal
+        pendingNaeemAdmitId = admitId;
+        const titleEl = document.getElementById('naeem-modal-patient-title');
+        const step1 = document.getElementById('naeem-step-1');
+        const procForm = document.getElementById('naeem-proc-form');
+        const admitForm = document.getElementById('naeem-admit-fee-form');
+
+        if (titleEl) titleEl.innerHTML = `<i data-lucide="user-check" style="color: var(--primary);"></i> <span>Patient Admission: ${record.patientName}</span>`;
+        if (step1) step1.style.display = 'block';
+        if (procForm) procForm.style.display = 'none';
+        if (admitForm) admitForm.style.display = 'none';
+
+        const procTypeInput = document.getElementById('naeem-proc-type-input');
+        const procFeeInput = document.getElementById('naeem-proc-fee-input');
+        const admitFeeInput = document.getElementById('naeem-admit-fee-input');
+
+        if (procTypeInput) procTypeInput.value = '';
+        if (procFeeInput) procFeeInput.value = '';
+        if (admitFeeInput) admitFeeInput.value = '';
+
+        const modalEl = document.getElementById('naeem-admit-modal');
+        if (modalEl) {
+            modalEl.classList.add('active');
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { window.lucide.createIcons(); } catch (e) {}
+            }
+        }
+    }
+}
+
+function confirmNaeemProcedureCompletion(admitId, procType, feeAmount) {
+    const record = naeemAdmitProcedures.find(r => r.id === admitId);
+    if (!record) return;
+
+    record.status = 'completed';
+    record.entryType = 'procedure';
+    record.procedureName = procType;
+    record.fee = feeAmount;
+
+    // Create 100% Doctor Payout Procedure Ledger Entry
+    const todayStr = getTodayLocalDateString();
+    const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const dayEntries = allPatients.filter(p => p.date === todayStr);
+    const dailyIdx = dayEntries.length + 1;
+
+    allPatients = allPatients.filter(p => p.admitId !== admitId);
+
+    const procLedgerRecord = {
+        id: `naeem-proc-${Date.now()}`,
+        dailyIndex: dailyIdx,
+        name: `${record.patientName} (Procedure: ${procType})`,
+        date: todayStr,
+        createdTime: timeStr,
+        charges: feeAmount,
+        split30: feeAmount, // 100% Doctor Payout
+        split70: 0,         // 0% Hospital Split
+        isProcedure: true,
+        admitId: record.id,
+        syncStatus: 'local'
+    };
+
+    allPatients.unshift(procLedgerRecord);
+    saveState();
+    renderAll();
+
+    showToast(`Procedure "${procType}" completed for "${record.patientName}"! ${formatCurrency(feeAmount)} (100% Doctor Share) posted to Ledger.`, 'success');
+}
+
+function confirmNaeemAdmissionFeeCompletion(admitId, feeAmount) {
+    const record = naeemAdmitProcedures.find(r => r.id === admitId);
+    if (!record) return;
+
+    record.status = 'completed';
+    record.entryType = 'admission';
+    record.fee = feeAmount;
+
+    // Create 100% Doctor Payout Admission Fee Ledger Entry
+    const todayStr = getTodayLocalDateString();
+    const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const dayEntries = allPatients.filter(p => p.date === todayStr);
+    const dailyIdx = dayEntries.length + 1;
+
+    allPatients = allPatients.filter(p => p.admitId !== admitId);
+
+    const admitLedgerRecord = {
+        id: `naeem-admit-${Date.now()}`,
+        dailyIndex: dailyIdx,
+        name: `${record.patientName} (Admission Fee)`,
+        date: todayStr,
+        createdTime: timeStr,
+        charges: feeAmount,
+        split30: feeAmount, // 100% Doctor Payout
+        split70: 0,         // 0% Hospital Split
+        isAdmissionFee: true,
+        admitId: record.id,
+        syncStatus: 'local'
+    };
+
+    allPatients.unshift(admitLedgerRecord);
+    saveState();
+    renderAll();
+
+    showToast(`Admission fee for "${record.patientName}" completed! ${formatCurrency(feeAmount)} (100% Doctor Share) posted to Ledger.`, 'success');
+}
+
+function handleDeleteNaeemAdmit(admitId) {
+    const record = naeemAdmitProcedures.find(r => r.id === admitId);
+    if (!record) return;
+
+    openModal(
+        'Delete Admitted Patient Record?',
+        `Are you sure you want to delete the record for ${record.patientName}?`,
+        () => {
+            naeemAdmitProcedures = naeemAdmitProcedures.filter(r => r.id !== admitId);
+            allPatients = allPatients.filter(p => p.admitId !== admitId);
+            saveState();
+            renderAll();
+            showToast('Admitted patient record deleted.', 'info');
+        }
+    );
+}
+
+function renderNaeemAdmitProcedures() {
+    const tbody = document.getElementById('naeem-admit-table-body');
+    const emptyState = document.getElementById('naeem-admit-empty-state');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const currentAdmitted = naeemAdmitProcedures.filter(r => r.status === 'admitted');
+    const completedAdmitted = naeemAdmitProcedures.filter(r => r.status === 'completed');
+
+    const totalEl = document.getElementById('naeem-admit-total');
+    const currentEl = document.getElementById('naeem-admit-current');
+    const completedEl = document.getElementById('naeem-admit-completed');
+
+    if (totalEl) totalEl.textContent = naeemAdmitProcedures.length;
+    if (currentEl) currentEl.textContent = currentAdmitted.length;
+    if (completedEl) completedEl.textContent = completedAdmitted.length;
+
+    if (naeemAdmitProcedures.length === 0) {
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+
+    naeemAdmitProcedures.forEach(r => {
+        const tr = document.createElement('tr');
+
+        let statusBadgeHtml = '';
+        if (r.status === 'completed') {
+            if (r.entryType === 'procedure') {
+                statusBadgeHtml = `<span class="priority-badge completed" title="Procedure: ${escapeHtml(r.procedureName || '')}"><i data-lucide="check-circle" style="width:13px;height:13px;"></i> Procedure Done</span>`;
+            } else {
+                statusBadgeHtml = '<span class="priority-badge completed"><i data-lucide="check-circle" style="width:13px;height:13px;"></i> Admission Fee</span>';
+            }
+        } else {
+            statusBadgeHtml = '<span class="priority-badge scheduled" style="background:#e0f2fe; color:#0284c7; border-color:#7dd3fc;"><i data-lucide="bed" style="width:13px;height:13px;"></i> Admitted</span>';
+        }
+
+        const isCompletedStyle = (r.status === 'completed') ? 'opacity: 0.6; text-decoration: line-through;' : '';
+
+        tr.innerHTML = `
+            <td>${statusBadgeHtml}</td>
+            <td style="${isCompletedStyle}">
+                <span class="patient-name-link" data-name="${escapeHtml(r.patientName)}" title="Click to view full patient history">
+                    <span>${escapeHtml(r.patientName)}</span>
+                    <i data-lucide="external-link" style="width:13px;height:13px;"></i>
+                </span>
+            </td>
+            <td style="${isCompletedStyle}">${formatDateDisplay(r.admitDate)}</td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                    <button class="toggle-naeem-admit-btn btn" data-id="${r.id}" title="${r.status === 'completed' ? 'Revert to Admitted' : 'Mark Done'}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary);">
+                        <i data-lucide="${r.status === 'completed' ? 'rotate-ccw' : 'check'}" style="width:14px;height:14px;"></i>
+                    </button>
+                    <button class="delete-naeem-admit-btn" data-id="${r.id}" title="Delete Record" style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 0.25rem;">
+                        <i data-lucide="trash" style="width:14px;height:14px;"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.patient-name-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const name = link.getAttribute('data-name');
+            openPatientHistory(name);
+        });
+    });
+
+    tbody.querySelectorAll('.toggle-naeem-admit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            handleToggleNaeemAdmitStatus(id);
+        });
+    });
+
+    tbody.querySelectorAll('.delete-naeem-admit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            handleDeleteNaeemAdmit(id);
         });
     });
 

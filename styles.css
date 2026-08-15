@@ -1081,6 +1081,27 @@ tr:hover td {
     border-color: #7e22ce;
 }
 
+/* Admission Fee Tag (Sheet 2) */
+.admission-badge {
+    background-color: #e0f2fe;
+    color: #0284c7;
+    border: 1px solid #7dd3fc;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+[data-theme="dark"] .admission-badge {
+    background-color: #1e3a8a;
+    color: #7dd3fc;
+    border-color: #1d4ed8;
+}
+
 /* ==========================================================================
    Printable PDF Monthly Financial Statement Styles (Screen & Print)
    ========================================================================== */

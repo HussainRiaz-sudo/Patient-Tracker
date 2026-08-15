@@ -75,6 +75,10 @@
                 <i data-lucide="stethoscope"></i>
                 <span>Procedures (Cavalry)</span>
             </button>
+            <button class="tab-btn" id="tab5-btn" role="tab" aria-selected="false" aria-controls="sheet5-content" style="display: none;">
+                <i data-lucide="bed"></i>
+                <span>Admit and Procedures (Naeem)</span>
+            </button>
         </nav>
 
         <!-- Sheet 1: Daily Log Tab -->
@@ -490,6 +494,93 @@
                 </section>
             </div>
         </main>
+
+        <!-- Sheet 5: Naeem Surgical Admit and Procedures Tab -->
+        <main id="sheet5-content" class="tab-content" role="tabpanel">
+            <!-- Stats Grid -->
+            <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                <div class="stat-card">
+                    <div class="stat-label">Total Admitted Logged</div>
+                    <div class="stat-value" id="naeem-admit-total">0</div>
+                    <div class="stat-subtext">Naeem Surgical records</div>
+                </div>
+                <div class="stat-card secondary" style="border-left: 4px solid var(--primary);">
+                    <div class="stat-label" style="color: var(--primary);">Currently Admitted</div>
+                    <div class="stat-value" id="naeem-admit-current" style="color: var(--primary);">0</div>
+                    <div class="stat-subtext">Active patients in ward</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">Completed / Discharged</div>
+                    <div class="stat-value" id="naeem-admit-completed">0</div>
+                    <div class="stat-subtext">Fees posted to ledger</div>
+                </div>
+            </div>
+
+            <!-- Admit Main Grid -->
+            <div class="daily-grid">
+                <!-- Admit Patient Form -->
+                <section class="form-card">
+                    <h2 class="form-title">
+                        <i data-lucide="bed-double"></i>
+                        <span>Admit New Patient</span>
+                    </h2>
+                    <form id="naeem-admit-form" novalidate>
+                        <div class="form-group">
+                            <label class="form-label" for="naeem-admit-patient-name">Patient Name</label>
+                            <div class="input-wrapper">
+                                <i class="input-icon" data-lucide="user"></i>
+                                <input type="text" id="naeem-admit-patient-name" class="form-control" placeholder="Select or enter patient name" required autocomplete="off" list="past-patients-list">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="naeem-admit-date">Admission Date</label>
+                            <div class="input-wrapper">
+                                <i class="input-icon" data-lucide="calendar"></i>
+                                <input type="date" id="naeem-admit-date" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">
+                            <i data-lucide="plus-circle"></i>
+                            <span>Add Admitted Patient</span>
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Admitted Patients List Table -->
+                <section class="data-card">
+                    <div class="table-header">
+                        <h2 class="table-title">
+                            <i data-lucide="list"></i>
+                            <span>Admitted Patients List (Naeem Surgical)</span>
+                        </h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="naeem-admit-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 120px;">Status</th>
+                                    <th>Patient Name</th>
+                                    <th>Admission Date</th>
+                                    <th style="width: 130px; text-align: center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="naeem-admit-table-body">
+                                <!-- Dynamic entries go here -->
+                            </tbody>
+                        </table>
+                        <div id="naeem-admit-empty-state" class="empty-state">
+                            <div class="empty-icon">
+                                <i data-lucide="bed"></i>
+                            </div>
+                            <div class="empty-text">No admitted patients logged for Naeem Surgical</div>
+                            <p style="font-size: 0.85rem;">Use the form on the left to add admitted ward patients.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
     </div>
 
     <!-- Google Sheet Configuration Settings Modal -->
@@ -663,6 +754,92 @@
                     <button type="submit" class="btn btn-primary modal-btn" style="width: auto; background-color: #9333ea; border-color: #9333ea;">
                         <i data-lucide="check-circle"></i>
                         <span>Confirm & Add to Ledger</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Naeem Admit Decision Modal -->
+    <div class="modal-overlay" id="naeem-admit-modal">
+        <div class="modal" style="max-width: 500px; width: 95%;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+                <h3 class="modal-title" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;" id="naeem-modal-patient-title">
+                    <i data-lucide="user-check" style="color: var(--primary);"></i>
+                    <span>Complete Patient Admission</span>
+                </h3>
+                <button id="close-naeem-modal-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <!-- Step 1: Decision Question -->
+            <div id="naeem-step-1" style="display: block;">
+                <p style="font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem; text-align: center;">
+                    Was the procedure done by you?
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem;">
+                    <button type="button" class="btn btn-primary" id="naeem-choice-yes-btn" style="padding: 0.75rem; font-size: 0.95rem; justify-content: center;">
+                        <i data-lucide="stethoscope"></i>
+                        <span>Yes — Procedure Done by Me</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="naeem-choice-no-btn" style="padding: 0.75rem; font-size: 0.95rem; justify-content: center; border-color: var(--primary); color: var(--primary);">
+                        <i data-lucide="bed"></i>
+                        <span>No — Admission Only (Admission Fee)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2A: Form for Procedure (Yes) -->
+            <form id="naeem-proc-form" style="display: none;" novalidate>
+                <div style="background-color: var(--primary-light); color: var(--primary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; font-weight: 600;">
+                    💡 100% Doctor Payout: Procedure earnings go 100% to doctor (0% hospital split).
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="naeem-proc-type-input">Procedure / Surgery Name</label>
+                    <div class="input-wrapper">
+                        <i class="input-icon" data-lucide="stethoscope"></i>
+                        <input type="text" id="naeem-proc-type-input" class="form-control" placeholder="e.g. Gallbladder Surgery, C-Section" required autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" for="naeem-proc-fee-input">Procedure Fee (PKR)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon" style="font-weight: 700; font-size: 0.9rem;">Rs.</span>
+                        <input type="number" id="naeem-proc-fee-input" class="form-control" placeholder="e.g. 35000" min="0" step="100" required autocomplete="off" style="padding-left: 50px;">
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline-danger modal-btn" id="naeem-proc-back-btn" style="width: auto; border: 1px solid var(--border); color: var(--text-secondary); background: transparent;">Back</button>
+                    <button type="submit" class="btn btn-primary modal-btn" style="width: auto;">
+                        <i data-lucide="check"></i>
+                        <span>Confirm Procedure Fee</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Step 2B: Form for Admission Only (No) -->
+            <form id="naeem-admit-fee-form" style="display: none;" novalidate>
+                <div style="background-color: var(--secondary-light); color: var(--secondary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; font-weight: 600;">
+                    💡 100% Doctor Payout: Admission fees go 100% to doctor (0% hospital split).
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" for="naeem-admit-fee-input">Admission Fee Earned (PKR)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon" style="font-weight: 700; font-size: 0.9rem;">Rs.</span>
+                        <input type="number" id="naeem-admit-fee-input" class="form-control" placeholder="e.g. 5000" min="0" step="100" required autocomplete="off" style="padding-left: 50px;">
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline-danger modal-btn" id="naeem-admit-back-btn" style="width: auto; border: 1px solid var(--border); color: var(--text-secondary); background: transparent;">Back</button>
+                    <button type="submit" class="btn btn-primary modal-btn" style="width: auto;">
+                        <i data-lucide="check"></i>
+                        <span>Confirm Admission Fee</span>
                     </button>
                 </div>
             </form>
