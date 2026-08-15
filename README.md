@@ -51,6 +51,7 @@ A modern, responsive, offline-first web application designed for medical practit
 
 ### 👤 5. Patient History & Clinical Record Modal
 - **Retroactive Record Scanner:** Tapping any patient name on **Sheet 1 (Daily Log)** or **Sheet 2 (All-Time Ledger)** aggregates all past and present visits across both hospital practices (*Naeem Surgical* & *Cavalry Hospital*).
+- **Smart Base Name Matching:** Automatically strips tags like `(Procedure: ...)` or `(Admission Fee)` so tapping any ledger entry displays the patient's complete cross-hospital history profile.
 - **Comprehensive Patient Profile:** Displays total visit count, cumulative gross charges, total doctor earnings, and first/last visit timestamps.
 - **Chronological Timeline Table:** Lists all historical consultations with date/time, hospital facility, gross charges, and net payout.
 
@@ -67,9 +68,9 @@ A modern, responsive, offline-first web application designed for medical practit
 - **Persistent Theme Preference:** Remembers user preference in `LocalStorage` (`doctor_theme`) to prevent white-screen flashes on load.
 - **Chart.js Theme Adaptation:** Dynamically updates graph gridlines and labels for dark/light themes.
 
-### 🩺 8. Cavalry Hospital Procedure Priority Schedule & 100% Doctor Payout
+### 🩺 8. Cavalry Hospital Procedures Schedule & 100% Doctor Payout
 - **Exclusive Hospital Visibility:** Tab 4 (**Procedures**) is scoped exclusively to **Cavalry Hospital** (`activeHospital === 'cavalry'`) and hides automatically when Naeem Surgical is active.
-- **Smart Patient Autocomplete:** Allows choosing existing patients from intake records or entering new patients.
+- **Smart Patient Autocomplete:** Clean, deduplicated dropdown menu suggesting only clean patient full names without tag clutter.
 - **Earliest-First Priority Engine:** Automatically sorts procedures chronologically by due date so the most urgent procedures remain at the very top of the list.
 - **Interactive Completion Fee Prompt:** Tapping "Mark Completed" opens a prompt for the doctor to enter the procedure fee (PKR).
 - **100% Doctor Share (Zero Hospital Ratio Split):** Procedure earnings bypass the standard 70/30 hospital split and assign **100% of revenue to the Doctor Share** (`Doctor = 100%`, `Hospital = 0%`).
@@ -82,7 +83,7 @@ A modern, responsive, offline-first web application designed for medical practit
 
 ### 🛏️ 9. Naeem Surgical Admit & Procedures Sheet
 - **Exclusive Hospital Visibility:** Tab 5 (**Admit and Procedures**) is scoped exclusively to **Naeem Surgical** (`activeHospital === 'naeem'`) and hides when Cavalry Hospital is active.
-- **Ward Patient Intake:** Allows logging admitted patients with admission dates and autocomplete patient matching.
+- **Ward Patient Intake:** Allows logging admitted patients with admission dates and clean autocomplete patient matching.
 - **Interactive Completion Decision Modal ("Mark Done"):**
   - Prompts: *"Was the procedure done by you?"*
   - **YES (Procedure Performed by Doctor):** Prompts for Procedure Name & Fee (PKR). Posts to Sheet 2 Ledger as **100% Doctor Share** tagged with purple `Procedure` badge.
