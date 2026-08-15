@@ -633,6 +633,42 @@
         </div>
     </div>
 
+    <!-- Procedure Fee Prompt Modal -->
+    <div class="modal-overlay" id="procedure-fee-modal">
+        <div class="modal" style="max-width: 480px; width: 95%;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="banknote"></i>
+                </div>
+                <div>
+                    <h3 class="modal-title" style="margin: 0;" id="proc-fee-title">Record Procedure Fee</h3>
+                    <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);" id="proc-fee-subtitle">Enter amount earned for this procedure</p>
+                </div>
+            </div>
+
+            <form id="proc-fee-form" novalidate>
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" for="proc-fee-amount">Procedure Amount (PKR)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon" style="font-weight: 700; font-size: 0.9rem;">Rs.</span>
+                        <input type="number" id="proc-fee-amount" class="form-control" placeholder="e.g. 25000" min="0" step="100" required autocomplete="off" style="padding-left: 50px;">
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+                        💡 <strong>100% Doctor Payout:</strong> Procedure earnings are assigned 100% to doctor share (0% hospital split).
+                    </p>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline-danger modal-btn" id="cancel-proc-fee-btn" style="width: auto; border: 1px solid var(--border); color: var(--text-secondary); background: transparent;">Cancel</button>
+                    <button type="submit" class="btn btn-primary modal-btn" style="width: auto; background-color: #9333ea; border-color: #9333ea;">
+                        <i data-lucide="check-circle"></i>
+                        <span>Confirm & Add to Ledger</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Printable Monthly Financial Statement Template (Detailed PDF Export) -->
     <div id="monthly-pdf-template" class="pdf-print-only">
         <div class="pdf-statement-container">

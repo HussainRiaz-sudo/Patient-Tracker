@@ -1060,6 +1060,27 @@ tr:hover td {
     border-color: #047857;
 }
 
+/* Procedure Ledger Tag (Sheet 2) */
+.procedure-badge {
+    background-color: #f3e8ff;
+    color: #9333ea;
+    border: 1px solid #d8b4fe;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+[data-theme="dark"] .procedure-badge {
+    background-color: #581c87;
+    color: #e9d5ff;
+    border-color: #7e22ce;
+}
+
 /* ==========================================================================
    Printable PDF Monthly Financial Statement Styles (Screen & Print)
    ========================================================================== */

@@ -67,10 +67,13 @@ A modern, responsive, offline-first web application designed for medical practit
 - **Persistent Theme Preference:** Remembers user preference in `LocalStorage` (`doctor_theme`) to prevent white-screen flashes on load.
 - **Chart.js Theme Adaptation:** Dynamically updates graph gridlines and labels for dark/light themes.
 
-### 🩺 8. Cavalry Hospital Procedure Priority Schedule
+### 🩺 8. Cavalry Hospital Procedure Priority Schedule & 100% Doctor Payout
 - **Exclusive Hospital Visibility:** Tab 4 (**Procedures**) is scoped exclusively to **Cavalry Hospital** (`activeHospital === 'cavalry'`) and hides automatically when Naeem Surgical is active.
 - **Smart Patient Autocomplete:** Allows choosing existing patients from intake records or entering new patients.
 - **Earliest-First Priority Engine:** Automatically sorts procedures chronologically by due date so the most urgent procedures remain at the very top of the list.
+- **Interactive Completion Fee Prompt:** Tapping "Mark Completed" opens a prompt for the doctor to enter the procedure fee (PKR).
+- **100% Doctor Share (Zero Hospital Ratio Split):** Procedure earnings bypass the standard 70/30 hospital split and assign **100% of revenue to the Doctor Share** (`Doctor = 100%`, `Hospital = 0%`).
+- **Separate All-Time Ledger Record:** Completed procedures automatically post to Sheet 2 tagged with a distinct purple `Procedure` badge.
 - **Visual Priority Badges:**
   - 🔴 **Overdue / Due Today** (Red High Priority)
   - 🟠 **Due Soon (1-3 Days)** (Orange Medium Priority)

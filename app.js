@@ -39,6 +39,7 @@ let googleSheetUrl = '';
 
 // Modal confirmation state
 let pendingAction = null;
+let pendingProcToCompleteId = null;
 
 // Apps Script Code Snippet
 const APPS_SCRIPT_CODE = `function doPost(e) {
@@ -670,6 +671,41 @@ function setupEventListeners() {
             if (e.target === histModalEl) closeHistModal();
         });
     }
+
+    // Procedure Fee Modal Event Hooks
+    const procFeeForm = document.getElementById('proc-fee-form');
+    const cancelProcFeeBtn = document.getElementById('cancel-proc-fee-btn');
+    const procFeeModalEl = document.getElementById('procedure-fee-modal');
+
+    const closeProcFeeModal = () => {
+        if (procFeeModalEl) procFeeModalEl.classList.remove('active');
+        pendingProcToCompleteId = null;
+    };
+
+    if (cancelProcFeeBtn) cancelProcFeeBtn.addEventListener('click', closeProcFeeModal);
+    if (procFeeModalEl) {
+        procFeeModalEl.addEventListener('click', (e) => {
+            if (e.target === procFeeModalEl) closeProcFeeModal();
+        });
+    }
+
+    if (procFeeForm) {
+        procFeeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const feeInput = document.getElementById('proc-fee-amount');
+            const feeVal = feeInput ? parseFloat(feeInput.value) : 0;
+
+            if (isNaN(feeVal) || feeVal < 0) {
+                showToast('Please enter a valid procedure amount.', 'danger');
+                return;
+            }
+
+            if (pendingProcToCompleteId) {
+                confirmProcedureCompletion(pendingProcToCompleteId, feeVal);
+                closeProcFeeModal();
+            }
+        });
+    }
 }
 
 // Add Patient Action
@@ -1079,8 +1115,12 @@ function renderLedgerTable() {
         const doctorVal = (p.split30 !== undefined) ? p.split30 : (p.charges * cfg.doctorRate);
         const hospitalVal = (p.split70 !== undefined) ? p.split70 : (p.charges * cfg.hospitalRate);
 
+        const badgeTag = p.isProcedure 
+            ? '<span class="procedure-badge" title="100% Doctor Payout Procedure"><i data-lucide="stethoscope" style="width:12px;height:12px;"></i> Procedure</span>'
+            : `<span class="patient-badge">#${p.dailyIndex}</span>`;
+
         tr.innerHTML = `
-            <td><span class="patient-badge">#${p.dailyIndex}</span></td>
+            <td>${badgeTag}</td>
             <td>
                 <span class="patient-name-link" data-name="${escapeHtml(p.name)}" title="Click to view full patient history">
                     <span>${escapeHtml(p.name)}</span>
@@ -1416,10 +1456,72 @@ function handleToggleProcedureStatus(procId) {
     const proc = cavalryProcedures.find(p => p.id === procId);
     if (!proc) return;
 
-    proc.status = (proc.status === 'completed') ? 'pending' : 'completed';
+    if (proc.status === 'completed') {
+        // Toggle back to pending: prompt confirmation
+        openModal(
+            'Mark Procedure as Pending?',
+            `Revert procedure "${proc.procedureName}" for ${proc.patientName} back to pending? (The associated ledger record will be removed).`,
+            () => {
+                proc.status = 'pending';
+                delete proc.fee;
+                // Remove corresponding procedure entry from allPatients ledger
+                allPatients = allPatients.filter(p => p.procedureId !== procId);
+                saveState();
+                renderAll();
+                showToast(`Procedure "${proc.procedureName}" marked as pending.`, 'info');
+            }
+        );
+    } else {
+        // Mark completed: prompt for procedure fee amount
+        pendingProcToCompleteId = procId;
+        const titleEl = document.getElementById('proc-fee-title');
+        const subtitleEl = document.getElementById('proc-fee-subtitle');
+        const amountInput = document.getElementById('proc-fee-amount');
+
+        if (titleEl) titleEl.textContent = `Procedure Fee: ${proc.procedureName}`;
+        if (subtitleEl) subtitleEl.textContent = `Patient: ${proc.patientName} | Due: ${formatDateDisplay(proc.dueDate)}`;
+        if (amountInput) amountInput.value = proc.fee || '';
+
+        const modalEl = document.getElementById('procedure-fee-modal');
+        if (modalEl) modalEl.classList.add('active');
+    }
+}
+
+function confirmProcedureCompletion(procId, feeAmount) {
+    const proc = cavalryProcedures.find(p => p.id === procId);
+    if (!proc) return;
+
+    proc.status = 'completed';
+    proc.fee = feeAmount;
+
+    // Create a specialized procedure entry in All-Time Ledger with 100% Doctor Payout
+    const todayStr = getTodayLocalDateString();
+    const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const dayEntries = allPatients.filter(p => p.date === todayStr);
+    const dailyIdx = dayEntries.length + 1;
+
+    // Remove any existing entry for this procedure first to avoid duplicates
+    allPatients = allPatients.filter(p => p.procedureId !== procId);
+
+    const procLedgerRecord = {
+        id: `proc-ledger-${Date.now()}`,
+        dailyIndex: dailyIdx,
+        name: `${proc.patientName} (Procedure: ${proc.procedureName})`,
+        date: todayStr,
+        createdTime: timeStr,
+        charges: feeAmount,
+        split30: feeAmount, // 100% Doctor Payout (bypasses 70/30 split)
+        split70: 0,         // 0% Hospital Split
+        isProcedure: true,
+        procedureId: proc.id,
+        syncStatus: 'local'
+    };
+
+    allPatients.unshift(procLedgerRecord);
     saveState();
-    renderCavalryProcedures();
-    showToast(`Procedure status updated to ${proc.status === 'completed' ? 'Completed' : 'Pending'}.`, 'info');
+    renderAll();
+
+    showToast(`Completed procedure for "${proc.patientName}"! Added ${formatCurrency(feeAmount)} (100% Doctor Share) to All-Time Ledger.`, 'success');
 }
 
 function handleDeleteProcedure(procId) {
