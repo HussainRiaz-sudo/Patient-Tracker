@@ -1050,14 +1050,31 @@ function renderAll() {
     }
 }
 
-// Populate Autocomplete past-patients-list dynamically
+// Helper: Extract clean base patient name by stripping (Procedure: ...) or (Admission Fee) tags
+function extractBasePatientName(rawName) {
+    if (!rawName) return '';
+    let name = rawName.trim();
+    name = name.replace(/\s*\((Procedure|Admission Fee).*?\)$/i, '');
+    return name.trim();
+}
+
+// Populate Autocomplete past-patients-list dynamically with clean base patient names only
 function updateAutocompleteSource() {
     const datalist = document.getElementById('past-patients-list');
     if (!datalist) return;
     datalist.innerHTML = '';
     
-    const names = allPatients.map(p => p.name);
-    const uniqueNames = [...new Set(names)].sort();
+    // Extract base patient names across all patients and procedures
+    const rawNames = [];
+    allPatients.forEach(p => { if (p.name) rawNames.push(p.name); });
+    cavalryProcedures.forEach(p => { if (p.patientName) rawNames.push(p.patientName); });
+    naeemAdmitProcedures.forEach(p => { if (p.patientName) rawNames.push(p.patientName); });
+
+    const cleanNames = rawNames
+        .map(n => extractBasePatientName(n))
+        .filter(n => n.length > 0);
+
+    const uniqueNames = [...new Set(cleanNames)].sort();
 
     uniqueNames.forEach(name => {
         const option = document.createElement('option');
@@ -1487,7 +1504,9 @@ function exportMonthlyPDF() {
 function openPatientHistory(patientName) {
     if (!patientName) return;
 
-    const targetNameClean = patientName.trim().toLowerCase();
+    // Extract clean base patient name (e.g. "Yahya" from "Yahya (Admission Fee)")
+    const basePatientName = extractBasePatientName(patientName);
+    const targetNameClean = basePatientName.toLowerCase();
 
     // 1. Gather all records across both Naeem Surgical and Cavalry Hospital from LocalStorage
     const naeemLedgerStr = localStorage.getItem('doctor_naeem_all_patients');
@@ -1506,11 +1525,15 @@ function openPatientHistory(patientName) {
     // Combine all records
     const combinedAll = [...naeemRecords, ...cavalryRecords];
 
-    // Filter matching patient name
-    const patientVisits = combinedAll.filter(r => r.name && r.name.trim().toLowerCase() === targetNameClean);
+    // Filter matching base patient name across all records (regular visits, procedures, admission fees)
+    const patientVisits = combinedAll.filter(r => {
+        if (!r.name) return false;
+        const rBaseName = extractBasePatientName(r.name).toLowerCase();
+        return rBaseName === targetNameClean;
+    });
 
     if (patientVisits.length === 0) {
-        showToast(`No past records found for "${patientName}".`, 'info');
+        showToast(`No past records found for "${basePatientName}".`, 'info');
         return;
     }
 
@@ -1541,7 +1564,7 @@ function openPatientHistory(patientName) {
     const lastEl = document.getElementById('history-last-visit');
     const tbody = document.getElementById('history-timeline-body');
 
-    if (titleEl) titleEl.textContent = `Patient Record: ${patientName}`;
+    if (titleEl) titleEl.textContent = `Patient Record: ${basePatientName}`;
     if (visitsEl) visitsEl.textContent = totalVisits;
     if (chargesEl) chargesEl.textContent = formatCurrency(grossTotal);
     if (doctorEl) doctorEl.textContent = formatCurrency(doctorTotal);
