@@ -92,7 +92,7 @@ A modern, responsive, offline-first web application designed for medical practit
 ### 🔐 10. Doctor PIN Security Lock & Financial Privacy Protection
 - **Session-Based Automatic Lock:** Every time the web application is opened or refreshed, the **All-Time Ledger (Sheet 2)**, **Financial Analytics (Sheet 3)**, **CSV Exports**, and **PDF Reports** are locked by default.
 - **Fast Clinic Intake Accessibility:** **Sheet 1 (Daily Log)**, **Procedures (Tab 4)**, and **Admit (Tab 5)** remain accessible without PIN entry so clinic assistants can perform daily intake without exposing accumulated doctor earnings.
-- **4-Digit Passcode Unlock Modal:** Features an iOS/Android-style 4-digit passcode prompt with auto-advancing digit inputs and invalid attempt shake animations (Default PIN: `1234`).
+- **4-Digit Passcode Unlock Modal:** Features an iOS/Android-style 4-digit passcode prompt with auto-advancing digit inputs and invalid attempt shake animations.
 - **Customizable PIN:** The doctor can change her security PIN anytime via the **Change PIN** modal.
 - **1-Tap Lock Button:** Topbar lock icon button (`#lock-status-btn`) displays active status (🔴 Locked vs 🟢 Unlocked) and allows locking all financials with 1 tap before handing the tablet to others.
 
