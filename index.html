@@ -27,6 +27,9 @@
                     <i data-lucide="calendar"></i>
                     <span id="current-datetime-display">Loading date & time...</span>
                 </div>
+                <button id="lock-status-btn" class="lock-status-btn locked" title="Financial Security: Ledger Locked (Tap to Unlock)">
+                    <i data-lucide="lock" style="width: 18px; height: 18px;"></i>
+                </button>
                 <button id="theme-toggle-btn" class="settings-trigger-btn" title="Toggle Light/Dark Theme">
                     <i data-lucide="moon"></i>
                 </button>
@@ -925,6 +928,84 @@
                     <p>Hospital Management Verification</p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- PIN Unlock Security Modal -->
+    <div class="modal-overlay" id="pin-lock-modal">
+        <div class="modal" style="max-width: 420px; width: 95%; text-align: center;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+                <i data-lucide="shield-lock" style="width: 28px; height: 28px;"></i>
+            </div>
+            
+            <h3 class="modal-title" style="margin: 0 0 0.4rem 0; font-weight: 700;">Financial Security Lock</h3>
+            <p class="modal-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                Enter your 4-digit Doctor PIN to view All-Time Ledger & Financial Reports.
+            </p>
+
+            <form id="pin-lock-form" novalidate autocomplete="off">
+                <div class="pin-input-container">
+                    <input type="password" id="pin-digit-1" class="pin-digit-box" maxlength="1" pattern="[0-9]*" inputmode="numeric" required>
+                    <input type="password" id="pin-digit-2" class="pin-digit-box" maxlength="1" pattern="[0-9]*" inputmode="numeric" required>
+                    <input type="password" id="pin-digit-3" class="pin-digit-box" maxlength="1" pattern="[0-9]*" inputmode="numeric" required>
+                    <input type="password" id="pin-digit-4" class="pin-digit-box" maxlength="1" pattern="[0-9]*" inputmode="numeric" required>
+                </div>
+
+                <div class="pin-error-text" id="pin-error-msg"></div>
+
+                <div style="display: flex; gap: 0.5rem; margin-top: 1.25rem;">
+                    <button type="button" class="btn btn-outline-danger" id="cancel-pin-btn" style="flex: 1; border: 1px solid var(--border); color: var(--text-secondary); background: transparent;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submit-pin-btn" style="flex: 1.5; background-color: var(--primary);">
+                        <i data-lucide="unlock" style="width: 16px; height: 16px;"></i>
+                        <span>Unlock Ledger</span>
+                    </button>
+                </div>
+
+                <div style="margin-top: 1.25rem; font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
+                    <span>Default PIN: <strong>1234</strong></span>
+                    <button type="button" id="open-change-pin-btn" style="background: none; border: none; color: var(--primary); font-size: 0.75rem; cursor: pointer; text-decoration: underline;">Change PIN</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change PIN Modal -->
+    <div class="modal-overlay" id="change-pin-modal">
+        <div class="modal" style="max-width: 420px; width: 95%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 class="modal-title" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="key-round" style="color: var(--primary);"></i>
+                    <span>Change Security PIN</span>
+                </h3>
+                <button id="close-change-pin-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <form id="change-pin-form" novalidate autocomplete="off">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="current-pin-input">Current 4-Digit PIN</label>
+                    <input type="password" id="current-pin-input" class="form-control" placeholder="••••" maxlength="4" pattern="[0-9]*" inputmode="numeric" required style="padding-left: 1rem; text-align: center; font-weight: 700; letter-spacing: 0.5rem;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="new-pin-input">New 4-Digit PIN</label>
+                    <input type="password" id="new-pin-input" class="form-control" placeholder="••••" maxlength="4" pattern="[0-9]*" inputmode="numeric" required style="padding-left: 1rem; text-align: center; font-weight: 700; letter-spacing: 0.5rem;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" for="confirm-pin-input">Confirm New PIN</label>
+                    <input type="password" id="confirm-pin-input" class="form-control" placeholder="••••" maxlength="4" pattern="[0-9]*" inputmode="numeric" required style="padding-left: 1rem; text-align: center; font-weight: 700; letter-spacing: 0.5rem;">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline-danger modal-btn" id="cancel-change-pin-btn" style="border: 1px solid var(--border); color: var(--text-secondary); background: transparent;">Cancel</button>
+                    <button type="submit" class="btn btn-primary modal-btn" style="background-color: var(--primary);">
+                        <i data-lucide="check"></i>
+                        <span>Save New PIN</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

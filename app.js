@@ -38,10 +38,14 @@ let naeemAdmitProcedures = [];
 let activeDay = '';
 let googleSheetUrl = '';
 
-// Modal confirmation state
+// Modal confirmation & PIN Security state
 let pendingAction = null;
 let pendingProcToCompleteId = null;
 let pendingNaeemAdmitId = null;
+
+let isLedgerUnlocked = false; // Resets to false on every app refresh for financial security!
+let ledgerPin = localStorage.getItem('doctor_ledger_pin') || '1234';
+let pendingUnlockCallback = null;
 
 // Apps Script Code Snippet
 const APPS_SCRIPT_CODE = `function doPost(e) {
@@ -193,6 +197,100 @@ function formatDateDisplay(dateStr) {
         day: 'numeric',
         year: 'numeric'
     });
+}
+
+// PIN Security Lock Helper Functions
+function updateLockStatusUI() {
+    const lockBtn = document.getElementById('lock-status-btn');
+    if (!lockBtn) return;
+    
+    if (isLedgerUnlocked) {
+        lockBtn.className = 'lock-status-btn unlocked';
+        lockBtn.title = 'Financial Security: Ledger Unlocked (Tap to Lock Now)';
+        lockBtn.innerHTML = '<i data-lucide="unlock" style="width: 18px; height: 18px;"></i>';
+    } else {
+        lockBtn.className = 'lock-status-btn locked';
+        lockBtn.title = 'Financial Security: Ledger Locked (Tap to Unlock)';
+        lockBtn.innerHTML = '<i data-lucide="lock" style="width: 18px; height: 18px;"></i>';
+    }
+    
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try { window.lucide.createIcons(); } catch (e) {}
+    }
+}
+
+function requestLedgerAccess(onSuccessCallback) {
+    if (isLedgerUnlocked) {
+        if (typeof onSuccessCallback === 'function') onSuccessCallback();
+        return;
+    }
+    openPinLockModal(onSuccessCallback);
+}
+
+function openPinLockModal(callbackOnSuccess) {
+    pendingUnlockCallback = callbackOnSuccess;
+    const modalEl = document.getElementById('pin-lock-modal');
+    const errorMsg = document.getElementById('pin-error-msg');
+    
+    [1, 2, 3, 4].forEach(i => {
+        const input = document.getElementById(`pin-digit-${i}`);
+        if (input) input.value = '';
+    });
+    if (errorMsg) errorMsg.textContent = '';
+    
+    if (modalEl) modalEl.classList.add('active');
+    
+    setTimeout(() => {
+        const firstInput = document.getElementById('pin-digit-1');
+        if (firstInput) firstInput.focus();
+    }, 150);
+}
+
+function closePinLockModal() {
+    const modalEl = document.getElementById('pin-lock-modal');
+    if (modalEl) modalEl.classList.remove('active');
+    pendingUnlockCallback = null;
+}
+
+function verifyPinAttempt() {
+    const d1 = (document.getElementById('pin-digit-1')?.value || '').trim();
+    const d2 = (document.getElementById('pin-digit-2')?.value || '').trim();
+    const d3 = (document.getElementById('pin-digit-3')?.value || '').trim();
+    const d4 = (document.getElementById('pin-digit-4')?.value || '').trim();
+    
+    const enteredPin = `${d1}${d2}${d3}${d4}`;
+    const errorMsg = document.getElementById('pin-error-msg');
+    const modalContent = document.querySelector('#pin-lock-modal .modal');
+    
+    if (enteredPin.length < 4) {
+        if (errorMsg) errorMsg.textContent = 'Please enter all 4 digits.';
+        return;
+    }
+    
+    if (enteredPin === ledgerPin) {
+        isLedgerUnlocked = true;
+        updateLockStatusUI();
+        closePinLockModal();
+        showToast('Financial Ledger & Analytics Unlocked!', 'success');
+        
+        if (typeof pendingUnlockCallback === 'function') {
+            const cb = pendingUnlockCallback;
+            pendingUnlockCallback = null;
+            cb();
+        }
+    } else {
+        if (errorMsg) errorMsg.textContent = 'Incorrect PIN. Please try again.';
+        if (modalContent) {
+            modalContent.classList.add('shake-modal');
+            setTimeout(() => modalContent.classList.remove('shake-modal'), 500);
+        }
+        [1, 2, 3, 4].forEach(i => {
+            const input = document.getElementById(`pin-digit-${i}`);
+            if (input) input.value = '';
+        });
+        const firstInput = document.getElementById('pin-digit-1');
+        if (firstInput) firstInput.focus();
+    }
 }
 
 // Load state from LocalStorage based on active hospital
@@ -408,10 +506,125 @@ function setupEventListeners() {
     };
 
     if (tab1Btn) tab1Btn.addEventListener('click', () => switchTab(tab1Btn, sheet1, renderDailyTable));
-    if (tab2Btn) tab2Btn.addEventListener('click', () => switchTab(tab2Btn, sheet2, renderLedgerTable));
-    if (tab3Btn) tab3Btn.addEventListener('click', () => switchTab(tab3Btn, sheet3, renderAnalytics));
+    if (tab2Btn) {
+        tab2Btn.addEventListener('click', () => {
+            requestLedgerAccess(() => switchTab(tab2Btn, sheet2, renderLedgerTable));
+        });
+    }
+    if (tab3Btn) {
+        tab3Btn.addEventListener('click', () => {
+            requestLedgerAccess(() => switchTab(tab3Btn, sheet3, renderAnalytics));
+        });
+    }
     if (tab4Btn) tab4Btn.addEventListener('click', () => switchTab(tab4Btn, sheet4, renderCavalryProcedures));
     if (tab5Btn) tab5Btn.addEventListener('click', () => switchTab(tab5Btn, sheet5, renderNaeemAdmitProcedures));
+
+    // Lock Status Header Button
+    const lockStatusBtn = document.getElementById('lock-status-btn');
+    if (lockStatusBtn) {
+        lockStatusBtn.addEventListener('click', () => {
+            if (isLedgerUnlocked) {
+                isLedgerUnlocked = false;
+                updateLockStatusUI();
+                if (tab1Btn && sheet1) switchTab(tab1Btn, sheet1, renderDailyTable);
+                showToast('Financial Ledger & Reports Locked.', 'info');
+            } else {
+                openPinLockModal(null);
+            }
+        });
+    }
+
+    // PIN Form digit auto-advance listeners
+    [1, 2, 3, 4].forEach(i => {
+        const input = document.getElementById(`pin-digit-${i}`);
+        if (input) {
+            input.addEventListener('input', (e) => {
+                const val = input.value.replace(/[^0-9]/g, '');
+                input.value = val;
+                if (val.length === 1 && i < 4) {
+                    const nextInput = document.getElementById(`pin-digit-${i + 1}`);
+                    if (nextInput) nextInput.focus();
+                }
+                if (i === 4 && val.length === 1) {
+                    verifyPinAttempt();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && i > 1) {
+                    const prevInput = document.getElementById(`pin-digit-${i - 1}`);
+                    if (prevInput) {
+                        prevInput.focus();
+                        prevInput.value = '';
+                    }
+                }
+            });
+        }
+    });
+
+    const pinLockForm = document.getElementById('pin-lock-form');
+    if (pinLockForm) {
+        pinLockForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            verifyPinAttempt();
+        });
+    }
+
+    const cancelPinBtn = document.getElementById('cancel-pin-btn');
+    if (cancelPinBtn) cancelPinBtn.addEventListener('click', closePinLockModal);
+
+    // Change PIN Modal Hooks
+    const openChangePinBtn = document.getElementById('open-change-pin-btn');
+    const changePinModal = document.getElementById('change-pin-modal');
+    const closeChangePinBtn = document.getElementById('close-change-pin-btn');
+    const cancelChangePinBtn = document.getElementById('cancel-change-pin-btn');
+    const changePinForm = document.getElementById('change-pin-form');
+
+    const openChangePin = () => {
+        closePinLockModal();
+        if (changePinModal) changePinModal.classList.add('active');
+    };
+    const closeChangePin = () => {
+        if (changePinModal) changePinModal.classList.remove('active');
+    };
+
+    if (openChangePinBtn) openChangePinBtn.addEventListener('click', openChangePin);
+    if (closeChangePinBtn) closeChangePinBtn.addEventListener('click', closeChangePin);
+    if (cancelChangePinBtn) cancelChangePinBtn.addEventListener('click', closeChangePin);
+
+    if (changePinForm) {
+        changePinForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const currInput = document.getElementById('current-pin-input');
+            const newInput = document.getElementById('new-pin-input');
+            const confInput = document.getElementById('confirm-pin-input');
+
+            const currVal = currInput ? currInput.value.trim() : '';
+            const newVal = newInput ? newInput.value.trim() : '';
+            const confVal = confInput ? confInput.value.trim() : '';
+
+            if (currVal !== ledgerPin) {
+                showToast('Current PIN is incorrect.', 'danger');
+                return;
+            }
+            if (!/^\d{4}$/.test(newVal)) {
+                showToast('New PIN must be exactly 4 digits.', 'danger');
+                return;
+            }
+            if (newVal !== confVal) {
+                showToast('New PIN and Confirm PIN do not match.', 'danger');
+                return;
+            }
+
+            ledgerPin = newVal;
+            localStorage.setItem('doctor_ledger_pin', ledgerPin);
+            closeChangePin();
+            if (currInput) currInput.value = '';
+            if (newInput) newInput.value = '';
+            if (confInput) confInput.value = '';
+            showToast('Security PIN changed successfully!', 'success');
+        });
+    }
 
     // Hospital Switcher Buttons
     const naeemBtn = document.getElementById('hospital-naeem-btn');
@@ -1028,6 +1241,7 @@ function reindexLedgerForDate(dateStr) {
 // Render everything
 function renderAll() {
     updateHospitalSwitcherUI();
+    updateLockStatusUI();
     renderDailyTable();
     renderDailyStats();
     renderLedgerTable();
@@ -1337,6 +1551,10 @@ function renderLedgerTable() {
 
 // Export Ledger to CSV File
 function exportLedgerToCSV() {
+    if (!isLedgerUnlocked) {
+        requestLedgerAccess(() => exportLedgerToCSV());
+        return;
+    }
     const cfg = HOSPITAL_CONFIGS[activeHospital] || HOSPITAL_CONFIGS.naeem;
     if (allPatients.length === 0) {
         showToast('No records in ledger to export.', 'info');
@@ -1375,6 +1593,10 @@ function exportLedgerToCSV() {
 
 // Export Monthly Detailed Patient Log & Financial Settlement Report to PDF
 function exportMonthlyPDF() {
+    if (!isLedgerUnlocked) {
+        requestLedgerAccess(() => exportMonthlyPDF());
+        return;
+    }
     const cfg = HOSPITAL_CONFIGS[activeHospital] || HOSPITAL_CONFIGS.naeem;
     const ledgerMonthSelect = document.getElementById('ledger-month-select');
     const startDateInput = document.getElementById('filter-start-date');
