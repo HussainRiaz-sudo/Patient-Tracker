@@ -33,6 +33,7 @@ const HOSPITAL_CONFIGS = {
 
 let dailyPatients = [];
 let allPatients = [];
+let cavalryProcedures = [];
 let activeDay = '';
 let googleSheetUrl = '';
 
@@ -128,6 +129,11 @@ function initApp() {
             dateInput.max = todayStr;
         }
 
+        const procDateInput = document.getElementById('proc-due-date');
+        if (procDateInput) {
+            procDateInput.value = todayStr;
+        }
+
         // 4. Check for daily reset
         checkDailyReset();
 
@@ -201,11 +207,13 @@ function loadState() {
     const cfg = HOSPITAL_CONFIGS[activeHospital] || HOSPITAL_CONFIGS.naeem;
     const storedDaily = localStorage.getItem(cfg.dailyKey);
     const storedLedger = localStorage.getItem(cfg.ledgerKey);
+    const storedProcedures = localStorage.getItem('doctor_cavalry_procedures');
     const storedActiveDay = localStorage.getItem(cfg.activeDayKey);
     const storedSheetUrl = localStorage.getItem(cfg.sheetsUrlKey);
 
     try { dailyPatients = storedDaily ? JSON.parse(storedDaily) : []; } catch (e) { dailyPatients = []; }
     try { allPatients = storedLedger ? JSON.parse(storedLedger) : []; } catch (e) { allPatients = []; }
+    try { cavalryProcedures = storedProcedures ? JSON.parse(storedProcedures) : []; } catch (e) { cavalryProcedures = []; }
     activeDay = storedActiveDay || getTodayLocalDateString();
     googleSheetUrl = storedSheetUrl || '';
 
@@ -220,6 +228,7 @@ function saveState() {
     localStorage.setItem('doctor_active_hospital', activeHospital);
     localStorage.setItem(cfg.dailyKey, JSON.stringify(dailyPatients));
     localStorage.setItem(cfg.ledgerKey, JSON.stringify(allPatients));
+    localStorage.setItem('doctor_cavalry_procedures', JSON.stringify(cavalryProcedures));
     localStorage.setItem(cfg.activeDayKey, activeDay);
     if (googleSheetUrl) {
         localStorage.setItem(cfg.sheetsUrlKey, googleSheetUrl);
@@ -243,9 +252,33 @@ function setHospital(hospitalId) {
 function updateHospitalSwitcherUI() {
     const naeemBtn = document.getElementById('hospital-naeem-btn');
     const cavalryBtn = document.getElementById('hospital-cavalry-btn');
+    const tab4Btn = document.getElementById('tab4-btn');
+    const sheet4 = document.getElementById('sheet4-content');
+
     if (naeemBtn && cavalryBtn) {
         naeemBtn.classList.toggle('active', activeHospital === 'naeem');
         cavalryBtn.classList.toggle('active', activeHospital === 'cavalry');
+    }
+
+    if (tab4Btn) {
+        if (activeHospital === 'cavalry') {
+            tab4Btn.style.display = 'inline-flex';
+        } else {
+            tab4Btn.style.display = 'none';
+            // If Naeem is selected and Tab 4 was active, switch to Tab 1
+            if (tab4Btn.classList.contains('active')) {
+                const tab1Btn = document.getElementById('tab1-btn');
+                const sheet1 = document.getElementById('sheet1-content');
+                if (tab1Btn && sheet1) {
+                    [tab1Btn, document.getElementById('tab2-btn'), document.getElementById('tab3-btn'), tab4Btn].forEach(b => {
+                        if (b) b.classList.toggle('active', b === tab1Btn);
+                    });
+                    [sheet1, document.getElementById('sheet2-content'), document.getElementById('sheet3-content'), sheet4].forEach(s => {
+                        if (s) s.classList.toggle('active', s === sheet1);
+                    });
+                }
+            }
+        }
     }
     updateDynamicLabels();
 }
@@ -321,19 +354,21 @@ function setupEventListeners() {
     const tab1Btn = document.getElementById('tab1-btn');
     const tab2Btn = document.getElementById('tab2-btn');
     const tab3Btn = document.getElementById('tab3-btn');
+    const tab4Btn = document.getElementById('tab4-btn');
     const sheet1 = document.getElementById('sheet1-content');
     const sheet2 = document.getElementById('sheet2-content');
     const sheet3 = document.getElementById('sheet3-content');
+    const sheet4 = document.getElementById('sheet4-content');
 
     const switchTab = (activeBtn, activeSheet, renderFn) => {
-        [tab1Btn, tab2Btn, tab3Btn].forEach(b => {
+        [tab1Btn, tab2Btn, tab3Btn, tab4Btn].forEach(b => {
             if (b) {
                 const isActive = (b === activeBtn);
                 b.classList.toggle('active', isActive);
                 b.setAttribute('aria-selected', isActive ? 'true' : 'false');
             }
         });
-        [sheet1, sheet2, sheet3].forEach(s => {
+        [sheet1, sheet2, sheet3, sheet4].forEach(s => {
             if (s) s.classList.toggle('active', s === activeSheet);
         });
         if (renderFn) renderFn();
@@ -342,6 +377,7 @@ function setupEventListeners() {
     if (tab1Btn) tab1Btn.addEventListener('click', () => switchTab(tab1Btn, sheet1, renderDailyTable));
     if (tab2Btn) tab2Btn.addEventListener('click', () => switchTab(tab2Btn, sheet2, renderLedgerTable));
     if (tab3Btn) tab3Btn.addEventListener('click', () => switchTab(tab3Btn, sheet3, renderAnalytics));
+    if (tab4Btn) tab4Btn.addEventListener('click', () => switchTab(tab4Btn, sheet4, renderCavalryProcedures));
 
     // Hospital Switcher Buttons
     const naeemBtn = document.getElementById('hospital-naeem-btn');
@@ -366,12 +402,21 @@ function setupEventListeners() {
         });
     }
 
-    // Form Submission
+    // Patient Form Submission
     const form = document.getElementById('patient-form');
     if (form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             handleAddPatient();
+        });
+    }
+
+    // Cavalry Procedure Form Submission
+    const procForm = document.getElementById('cavalry-procedure-form');
+    if (procForm) {
+        procForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleAddProcedure();
         });
     }
 
@@ -816,6 +861,9 @@ function renderAll() {
     updateSyncIndicator();
     populateLedgerMonthSelect();
     populateAnalyticsMonthSelect();
+    if (activeHospital === 'cavalry') {
+        renderCavalryProcedures();
+    }
     const sheet3 = document.getElementById('sheet3-content');
     if (sheet3 && sheet3.classList.contains('active')) {
         renderAnalytics();
@@ -1326,6 +1374,187 @@ function openPatientHistory(patientName) {
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             try { window.lucide.createIcons(); } catch (e) {}
         }
+    }
+}
+
+// Cavalry Hospital Procedures Feature (Add, Toggle, Delete, Render Priority Schedule)
+function handleAddProcedure() {
+    const patientInput = document.getElementById('proc-patient-name');
+    const titleInput = document.getElementById('proc-title');
+    const dateInput = document.getElementById('proc-due-date');
+
+    const patientName = patientInput ? patientInput.value.trim() : '';
+    const procedureName = titleInput ? titleInput.value.trim() : '';
+    const dueDate = dateInput ? dateInput.value : '';
+
+    if (!patientName || !procedureName || !dueDate) {
+        showToast('Please fill out patient name, procedure name, and due date.', 'danger');
+        return;
+    }
+
+    const procRecord = {
+        id: Date.now().toString(),
+        patientName: patientName,
+        procedureName: procedureName,
+        dueDate: dueDate,
+        status: 'pending',
+        createdDate: getTodayLocalDateString()
+    };
+
+    cavalryProcedures.push(procRecord);
+    saveState();
+
+    if (patientInput) patientInput.value = '';
+    if (titleInput) titleInput.value = '';
+    if (dateInput) dateInput.value = getTodayLocalDateString();
+
+    renderCavalryProcedures();
+    showToast(`Procedure for "${patientName}" added to Cavalry priority schedule!`, 'success');
+}
+
+function handleToggleProcedureStatus(procId) {
+    const proc = cavalryProcedures.find(p => p.id === procId);
+    if (!proc) return;
+
+    proc.status = (proc.status === 'completed') ? 'pending' : 'completed';
+    saveState();
+    renderCavalryProcedures();
+    showToast(`Procedure status updated to ${proc.status === 'completed' ? 'Completed' : 'Pending'}.`, 'info');
+}
+
+function handleDeleteProcedure(procId) {
+    const proc = cavalryProcedures.find(p => p.id === procId);
+    if (!proc) return;
+
+    openModal(
+        'Delete Scheduled Procedure?',
+        `Are you sure you want to delete the scheduled procedure "${proc.procedureName}" for ${proc.patientName}?`,
+        () => {
+            cavalryProcedures = cavalryProcedures.filter(p => p.id !== procId);
+            saveState();
+            renderCavalryProcedures();
+            showToast('Scheduled procedure deleted.', 'info');
+        }
+    );
+}
+
+function renderCavalryProcedures() {
+    const tbody = document.getElementById('proc-table-body');
+    const emptyState = document.getElementById('proc-empty-state');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const todayStr = getTodayLocalDateString();
+    const todayMs = new Date(todayStr + 'T00:00:00').getTime();
+
+    // Priority Sort Engine:
+    // 1. Pending procedures sorted by dueDate ASC (Earliest due date at top!)
+    // 2. Completed procedures placed at bottom
+    const pendingItems = cavalryProcedures.filter(p => p.status !== 'completed');
+    const completedItems = cavalryProcedures.filter(p => p.status === 'completed');
+
+    pendingItems.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    completedItems.sort((a, b) => b.dueDate.localeCompare(a.dueDate));
+
+    const sortedProcedures = [...pendingItems, ...completedItems];
+
+    // Priority Counts
+    let urgentCount = 0;
+    let soonCount = 0;
+
+    pendingItems.forEach(p => {
+        const dueMs = new Date(p.dueDate + 'T00:00:00').getTime();
+        const diffDays = Math.ceil((dueMs - todayMs) / (1000 * 60 * 60 * 24));
+        if (diffDays <= 0) {
+            urgentCount++;
+        } else if (diffDays <= 3) {
+            soonCount++;
+        }
+    });
+
+    const totalEl = document.getElementById('proc-total-count');
+    const urgentEl = document.getElementById('proc-urgent-count');
+    const soonEl = document.getElementById('proc-soon-count');
+
+    if (totalEl) totalEl.textContent = cavalryProcedures.length;
+    if (urgentEl) urgentEl.textContent = urgentCount;
+    if (soonEl) soonEl.textContent = soonCount;
+
+    if (sortedProcedures.length === 0) {
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+
+    sortedProcedures.forEach(p => {
+        const tr = document.createElement('tr');
+        
+        const dueMs = new Date(p.dueDate + 'T00:00:00').getTime();
+        const diffDays = Math.ceil((dueMs - todayMs) / (1000 * 60 * 60 * 24));
+
+        let badgeHtml = '';
+        if (p.status === 'completed') {
+            badgeHtml = '<span class="priority-badge completed"><i data-lucide="check-circle" style="width:13px;height:13px;"></i> Done</span>';
+        } else if (diffDays < 0) {
+            badgeHtml = `<span class="priority-badge urgent"><i data-lucide="alert-triangle" style="width:13px;height:13px;"></i> Overdue (${Math.abs(diffDays)}d)</span>`;
+        } else if (diffDays === 0) {
+            badgeHtml = '<span class="priority-badge urgent"><i data-lucide="clock" style="width:13px;height:13px;"></i> Due Today</span>';
+        } else if (diffDays <= 3) {
+            badgeHtml = `<span class="priority-badge soon"><i data-lucide="bell" style="width:13px;height:13px;"></i> Soon (${diffDays}d)</span>`;
+        } else {
+            badgeHtml = `<span class="priority-badge scheduled"><i data-lucide="calendar" style="width:13px;height:13px;"></i> ${diffDays} Days Out</span>`;
+        }
+
+        const isCompletedStyle = (p.status === 'completed') ? 'opacity: 0.6; text-decoration: line-through;' : '';
+
+        tr.innerHTML = `
+            <td>${badgeHtml}</td>
+            <td style="${isCompletedStyle}">
+                <span class="patient-name-link" data-name="${escapeHtml(p.patientName)}" title="Click to view full patient history">
+                    <span>${escapeHtml(p.patientName)}</span>
+                    <i data-lucide="external-link" style="width:13px;height:13px;"></i>
+                </span>
+            </td>
+            <td style="font-weight: 500; ${isCompletedStyle}">${escapeHtml(p.procedureName)}</td>
+            <td style="${isCompletedStyle}">${formatDateDisplay(p.dueDate)}</td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                    <button class="toggle-proc-btn btn" data-id="${p.id}" title="${p.status === 'completed' ? 'Mark Pending' : 'Mark Completed'}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary);">
+                        <i data-lucide="${p.status === 'completed' ? 'rotate-ccw' : 'check'}" style="width:14px;height:14px;"></i>
+                    </button>
+                    <button class="delete-proc-btn" data-id="${p.id}" title="Delete Procedure" style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 0.25rem;">
+                        <i data-lucide="trash" style="width:14px;height:14px;"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.patient-name-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const name = link.getAttribute('data-name');
+            openPatientHistory(name);
+        });
+    });
+
+    tbody.querySelectorAll('.toggle-proc-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            handleToggleProcedureStatus(id);
+        });
+    });
+
+    tbody.querySelectorAll('.delete-proc-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            handleDeleteProcedure(id);
+        });
+    });
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try { window.lucide.createIcons(); } catch (e) {}
     }
 }
 

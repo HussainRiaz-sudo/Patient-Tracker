@@ -63,8 +63,19 @@ A modern, responsive, offline-first web application designed for medical practit
 
 ### 🌓 7. Dark Mode & Light Mode Theme Engine
 - **1-Tap Header Toggle:** Sun/Moon toggle button in top bar header for seamless switching.
+- **High-Contrast Text Guarantee:** Explicit CSS theme overrides ensuring inputs, select dropdowns, labels, and table cells remain 100% legible without dark-on-dark text overlap.
 - **Persistent Theme Preference:** Remembers user preference in `LocalStorage` (`doctor_theme`) to prevent white-screen flashes on load.
 - **Chart.js Theme Adaptation:** Dynamically updates graph gridlines and labels for dark/light themes.
+
+### 🩺 8. Cavalry Hospital Procedure Priority Schedule
+- **Exclusive Hospital Visibility:** Tab 4 (**Procedures**) is scoped exclusively to **Cavalry Hospital** (`activeHospital === 'cavalry'`) and hides automatically when Naeem Surgical is active.
+- **Smart Patient Autocomplete:** Allows choosing existing patients from intake records or entering new patients.
+- **Earliest-First Priority Engine:** Automatically sorts procedures chronologically by due date so the most urgent procedures remain at the very top of the list.
+- **Visual Priority Badges:**
+  - 🔴 **Overdue / Due Today** (Red High Priority)
+  - 🟠 **Due Soon (1-3 Days)** (Orange Medium Priority)
+  - 🟢 **Scheduled** (Blue Standard Priority)
+  - ⚪ **Mark Completed Toggle** (Green Done Status)
 
 ---
 

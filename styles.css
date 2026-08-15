@@ -52,6 +52,41 @@
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
 }
 
+/* Explicit Dark Mode Text Contrast Fixes */
+[data-theme="dark"] select,
+[data-theme="dark"] option,
+[data-theme="dark"] input,
+[data-theme="dark"] textarea {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] select option {
+    background-color: #132247 !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] ::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .table-header,
+[data-theme="dark"] table th,
+[data-theme="dark"] table td,
+[data-theme="dark"] .stat-label,
+[data-theme="dark"] .stat-value,
+[data-theme="dark"] .stat-subtext,
+[data-theme="dark"] .form-label,
+[data-theme="dark"] .modal-title,
+[data-theme="dark"] .modal-desc,
+[data-theme="dark"] .summary-banner-label,
+[data-theme="dark"] .banner-stat-label,
+[data-theme="dark"] .banner-stat-value {
+    color: var(--text-primary);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -962,6 +997,67 @@ tr:hover td {
 .history-icon-btn:hover {
     color: var(--primary);
     background-color: var(--primary-light);
+}
+
+/* Procedure Priority Badges (Cavalry Hospital) */
+.priority-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.priority-badge.urgent {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+.priority-badge.soon {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fcd34d;
+}
+
+.priority-badge.scheduled {
+    background-color: #e0f2fe;
+    color: #0284c7;
+    border: 1px solid #7dd3fc;
+}
+
+.priority-badge.completed {
+    background-color: #d1fae5;
+    color: #059669;
+    border: 1px solid #6ee7b7;
+}
+
+[data-theme="dark"] .priority-badge.urgent {
+    background-color: #7f1d1d;
+    color: #fca5a5;
+    border-color: #991b1b;
+}
+
+[data-theme="dark"] .priority-badge.soon {
+    background-color: #78350f;
+    color: #fcd34d;
+    border-color: #92400e;
+}
+
+[data-theme="dark"] .priority-badge.scheduled {
+    background-color: #1e3a8a;
+    color: #7dd3fc;
+    border-color: #1d4ed8;
+}
+
+[data-theme="dark"] .priority-badge.completed {
+    background-color: #064e3b;
+    color: #6ee7b7;
+    border-color: #047857;
 }
 
 /* ==========================================================================
