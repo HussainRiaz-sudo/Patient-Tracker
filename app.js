@@ -1443,7 +1443,19 @@ function exportMonthlyPDF() {
         recordsToInclude.forEach((p, idx) => {
             const dVal = (p.split30 !== undefined ? p.split30 : p.charges * cfg.doctorRate);
             const hVal = (p.split70 !== undefined ? p.split70 : p.charges * cfg.hospitalRate);
-            const timeDisplay = p.createdTime ? ` | ${p.createdTime}` : '';
+
+            // Robust timestamp extraction: use createdTime, or derive from ID timestamp
+            let timeVal = p.createdTime;
+            if (!timeVal && p.id && !isNaN(p.id) && p.id.length >= 10) {
+                try {
+                    const parsedDate = new Date(parseInt(p.id));
+                    if (!isNaN(parsedDate.getTime())) {
+                        timeVal = parsedDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    }
+                } catch (e) {}
+            }
+            if (!timeVal) timeVal = '12:00 PM';
+            const timeDisplay = ` | ${timeVal}`;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
