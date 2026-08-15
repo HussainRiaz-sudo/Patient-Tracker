@@ -316,33 +316,31 @@ function updateHospitalSwitcherUI() {
     updateDynamicLabels();
 }
 
-// Update Dynamic Split Labels across all sheets
+// Update Dynamic Split Labels across all sheets (ratio numbers hidden for privacy)
 function updateDynamicLabels() {
-    const cfg = HOSPITAL_CONFIGS[activeHospital] || HOSPITAL_CONFIGS.naeem;
-    
     // Sheet 1 stats
     const todayDocLabel = document.getElementById('today-doctor-label');
-    if (todayDocLabel) todayDocLabel.textContent = `Doctor Share (${cfg.doctorPercentLabel})`;
+    if (todayDocLabel) todayDocLabel.textContent = `Doctor Share`;
 
     // Sheet 2 stats & table headers
     const ledgerDocLabel = document.getElementById('ledger-doctor-label');
-    if (ledgerDocLabel) ledgerDocLabel.textContent = `Doctor Share (${cfg.doctorPercentLabel})`;
+    if (ledgerDocLabel) ledgerDocLabel.textContent = `Doctor Share`;
 
     const ledgerHospLabel = document.getElementById('ledger-hospital-label');
-    if (ledgerHospLabel) ledgerHospLabel.textContent = `Hospital Share (${cfg.hospitalPercentLabel})`;
+    if (ledgerHospLabel) ledgerHospLabel.textContent = `Hospital Share`;
 
     const ledgerThDoc = document.getElementById('ledger-th-doctor');
-    if (ledgerThDoc) ledgerThDoc.textContent = `Doctor Share ${cfg.doctorPercentLabel} (Rs.)`;
+    if (ledgerThDoc) ledgerThDoc.textContent = `Doctor Share (Rs.)`;
 
     const ledgerThHosp = document.getElementById('ledger-th-hospital');
-    if (ledgerThHosp) ledgerThHosp.textContent = `Hospital Share ${cfg.hospitalPercentLabel} (Rs.)`;
+    if (ledgerThHosp) ledgerThHosp.textContent = `Hospital Share (Rs.)`;
 
     // Sheet 3 analytics labels
     const analyticsDocLabel = document.getElementById('analytics-doctor-label');
-    if (analyticsDocLabel) analyticsDocLabel.textContent = `Doctor Earnings (${cfg.doctorPercentLabel})`;
+    if (analyticsDocLabel) analyticsDocLabel.textContent = `Doctor Earnings`;
 
     const analyticsHospLabel = document.getElementById('analytics-hospital-label');
-    if (analyticsHospLabel) analyticsHospLabel.textContent = `Hospital Share (${cfg.hospitalPercentLabel})`;
+    if (analyticsHospLabel) analyticsHospLabel.textContent = `Hospital Share`;
 }
 
 // Check if day rolled over and daily log needs clearing
@@ -1253,8 +1251,8 @@ function renderLedgerTable() {
     if (fDoctorEl) fDoctorEl.textContent = formatCurrency(filteredDoctor);
     if (fHospitalEl) fHospitalEl.textContent = formatCurrency(filteredHospital);
 
-    if (fDoctorLabel) fDoctorLabel.textContent = `Doctor Share (${cfg.doctorPercentLabel})`;
-    if (fHospitalLabel) fHospitalLabel.textContent = `Hospital Share (${cfg.hospitalPercentLabel})`;
+    if (fDoctorLabel) fDoctorLabel.textContent = `Doctor Share`;
+    if (fHospitalLabel) fHospitalLabel.textContent = `Hospital Share`;
 
     if (filteredPatients.length === 0) {
         if (emptyState) emptyState.style.display = 'block';
@@ -1448,10 +1446,10 @@ function exportMonthlyPDF() {
     if (docShareEl) docShareEl.textContent = formatCurrency(doctorShare);
     if (hospShareEl) hospShareEl.textContent = formatCurrency(hospitalShare);
 
-    if (docLabelEl) docLabelEl.textContent = `Doctor Share (${cfg.doctorPercentLabel})`;
-    if (hospLabelEl) hospLabelEl.textContent = `Hospital Share (${cfg.hospitalPercentLabel})`;
-    if (thDocEl) thDocEl.textContent = `Doctor Share ${cfg.doctorPercentLabel} (PKR)`;
-    if (thHospEl) thHospEl.textContent = `Hospital Share ${cfg.hospitalPercentLabel} (PKR)`;
+    if (docLabelEl) docLabelEl.textContent = `Doctor Share`;
+    if (hospLabelEl) hospLabelEl.textContent = `Hospital Share`;
+    if (thDocEl) thDocEl.textContent = `Doctor Share (PKR)`;
+    if (thHospEl) thHospEl.textContent = `Hospital Share (PKR)`;
 
     // Populate Detailed Patient Table
     const tbody = document.getElementById('pdf-patient-table-body');

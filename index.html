@@ -20,7 +20,6 @@
                 </div>
                 <div class="logo-text">
                     <h1>Dr Naila Patient Tracker</h1>
-                    <p>Daily Log & Google Sheets Sync</p>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
@@ -44,14 +43,12 @@
                     <i data-lucide="building-2"></i>
                     <div class="hospital-btn-info">
                         <span class="hospital-name">Naeem Surgical</span>
-                        <span class="hospital-badge">Doctor 30% / Hospital 70%</span>
                     </div>
                 </button>
                 <button id="hospital-cavalry-btn" class="hospital-btn" data-hospital="cavalry">
                     <i data-lucide="building"></i>
                     <div class="hospital-btn-info">
                         <span class="hospital-name">Cavalry Hospital</span>
-                        <span class="hospital-badge">Doctor 70% / Hospital 30%</span>
                     </div>
                 </button>
             </div>
@@ -200,12 +197,12 @@
                     <div class="stat-subtext">Total patient billings</div>
                 </div>
                 <div class="stat-card success">
-                    <div class="stat-label" id="ledger-doctor-label">Doctor Share (30%)</div>
+                    <div class="stat-label" id="ledger-doctor-label">Doctor Share</div>
                     <div class="stat-value" id="ledger-share-30">Rs. 0.00</div>
                     <div class="stat-subtext">Total doctor earnings</div>
                 </div>
                 <div class="stat-card secondary">
-                    <div class="stat-label" id="ledger-hospital-label">Hospital Share (70%)</div>
+                    <div class="stat-label" id="ledger-hospital-label">Hospital Share</div>
                     <div class="stat-value" id="ledger-share-70">Rs. 0.00</div>
                     <div class="stat-subtext">Total hospital earnings</div>
                 </div>
@@ -281,11 +278,11 @@
                             <span class="banner-stat-value" id="filtered-gross">Rs. 0.00</span>
                         </div>
                         <div class="banner-stat-item success">
-                            <span class="banner-stat-label" id="filtered-doctor-label">Doctor Share (30%)</span>
+                            <span class="banner-stat-label" id="filtered-doctor-label">Doctor Share</span>
                             <span class="banner-stat-value" id="filtered-doctor-share">Rs. 0.00</span>
                         </div>
                         <div class="banner-stat-item secondary">
-                            <span class="banner-stat-label" id="filtered-hospital-label">Hospital Share (70%)</span>
+                            <span class="banner-stat-label" id="filtered-hospital-label">Hospital Share</span>
                             <span class="banner-stat-value" id="filtered-hospital-share">Rs. 0.00</span>
                         </div>
                     </div>
@@ -299,8 +296,8 @@
                                 <th>Patient Name</th>
                                 <th>Date</th>
                                 <th style="text-align: right;">Gross Charges (Rs.)</th>
-                                <th id="ledger-th-doctor" style="text-align: right; color: var(--success);">Doctor Share 30% (Rs.)</th>
-                                <th id="ledger-th-hospital" style="text-align: right; color: var(--secondary);">Hospital Share 70% (Rs.)</th>
+                                <th id="ledger-th-doctor" style="text-align: right; color: var(--success);">Doctor Share (Rs.)</th>
+                                <th id="ledger-th-hospital" style="text-align: right; color: var(--secondary);">Hospital Share (Rs.)</th>
                                 <th style="width: 110px; text-align: center;">Sheet Sync</th>
                                 <th style="width: 50px;"></th>
                             </tr>
@@ -345,7 +342,7 @@
                     <div class="stat-subtext">Total billing this month</div>
                 </div>
                 <div class="stat-card success">
-                    <div class="stat-label" id="analytics-doctor-label">Doctor Earnings (30%)</div>
+                    <div class="stat-label" id="analytics-doctor-label">Doctor Earnings</div>
                     <div class="stat-value" id="analytics-month-doctor">Rs. 0.00</div>
                     <div class="stat-subtext">Total payout this month</div>
                 </div>
@@ -880,12 +877,12 @@
                     <div class="pdf-stat-sub">Total patient charges</div>
                 </div>
                 <div class="pdf-stat-card highlight-doc">
-                    <div class="pdf-stat-label" id="pdf-doctor-label">Doctor Share (30%)</div>
+                    <div class="pdf-stat-label" id="pdf-doctor-label">Doctor Share</div>
                     <div class="pdf-stat-value" id="pdf-doctor-share">Rs. 0.00</div>
                     <div class="pdf-stat-sub">Earned professional fee</div>
                 </div>
                 <div class="pdf-stat-card highlight-hosp">
-                    <div class="pdf-stat-label" id="pdf-hospital-label">Hospital Share (70%)</div>
+                    <div class="pdf-stat-label" id="pdf-hospital-label">Hospital Share</div>
                     <div class="pdf-stat-value" id="pdf-hospital-share">Rs. 0.00</div>
                     <div class="pdf-stat-sub">Facility revenue share</div>
                 </div>
@@ -900,8 +897,8 @@
                             <th>Patient Name</th>
                             <th>Date & Time</th>
                             <th style="text-align: right;">Gross Charges (PKR)</th>
-                            <th id="pdf-th-doc" style="text-align: right;">Doctor Share 30% (PKR)</th>
-                            <th id="pdf-th-hosp" style="text-align: right;">Hospital Share 70% (PKR)</th>
+                            <th id="pdf-th-doc" style="text-align: right;">Doctor Share (PKR)</th>
+                            <th id="pdf-th-hosp" style="text-align: right;">Hospital Share (PKR)</th>
                         </tr>
                     </thead>
                     <tbody id="pdf-patient-table-body">
