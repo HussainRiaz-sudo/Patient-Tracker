@@ -328,6 +328,27 @@ function loadState() {
     if (!storedActiveDay) {
         localStorage.setItem(cfg.activeDayKey, activeDay);
     }
+
+    // Retroactive Centralized Date Synchronization for Procedure & Admission Fee Ledger Entries
+    let stateChanged = false;
+    allPatients.forEach(p => {
+        if (p.procedureId) {
+            const proc = cavalryProcedures.find(c => c.id === p.procedureId);
+            if (proc && proc.dueDate && p.date !== proc.dueDate) {
+                p.date = proc.dueDate;
+                stateChanged = true;
+            }
+        } else if (p.admitId) {
+            const admit = naeemAdmitProcedures.find(n => n.id === p.admitId);
+            if (admit && admit.admitDate && p.date !== admit.admitDate) {
+                p.date = admit.admitDate;
+                stateChanged = true;
+            }
+        }
+    });
+    if (stateChanged) {
+        saveState();
+    }
 }
 
 // Save state to LocalStorage for active hospital
@@ -1896,10 +1917,10 @@ function confirmProcedureCompletion(procId, feeAmount) {
     proc.status = 'completed';
     proc.fee = feeAmount;
 
-    // Create a specialized procedure entry in All-Time Ledger with 100% Doctor Payout
-    const todayStr = getTodayLocalDateString();
+    // Create a specialized procedure entry in All-Time Ledger with 100% Doctor Payout using exact procedure due date
+    const entryDate = proc.dueDate || getTodayLocalDateString();
     const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const dayEntries = allPatients.filter(p => p.date === todayStr);
+    const dayEntries = allPatients.filter(p => p.date === entryDate);
     const dailyIdx = dayEntries.length + 1;
 
     // Remove any existing entry for this procedure first to avoid duplicates
@@ -1909,7 +1930,7 @@ function confirmProcedureCompletion(procId, feeAmount) {
         id: `proc-ledger-${Date.now()}`,
         dailyIndex: dailyIdx,
         name: `${proc.patientName} (Procedure: ${proc.procedureName})`,
-        date: todayStr,
+        date: entryDate,
         createdTime: timeStr,
         charges: feeAmount,
         split30: feeAmount, // 100% Doctor Payout (bypasses 70/30 split)
@@ -2154,10 +2175,10 @@ function confirmNaeemProcedureCompletion(admitId, procType, feeAmount) {
     record.procedureName = procType;
     record.fee = feeAmount;
 
-    // Create 100% Doctor Payout Procedure Ledger Entry
-    const todayStr = getTodayLocalDateString();
+    // Create 100% Doctor Payout Procedure Ledger Entry using exact patient admit date
+    const entryDate = record.admitDate || getTodayLocalDateString();
     const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const dayEntries = allPatients.filter(p => p.date === todayStr);
+    const dayEntries = allPatients.filter(p => p.date === entryDate);
     const dailyIdx = dayEntries.length + 1;
 
     allPatients = allPatients.filter(p => p.admitId !== admitId);
@@ -2166,7 +2187,7 @@ function confirmNaeemProcedureCompletion(admitId, procType, feeAmount) {
         id: `naeem-proc-${Date.now()}`,
         dailyIndex: dailyIdx,
         name: `${record.patientName} (Procedure: ${procType})`,
-        date: todayStr,
+        date: entryDate,
         createdTime: timeStr,
         charges: feeAmount,
         split30: feeAmount, // 100% Doctor Payout
@@ -2191,10 +2212,10 @@ function confirmNaeemAdmissionFeeCompletion(admitId, feeAmount) {
     record.entryType = 'admission';
     record.fee = feeAmount;
 
-    // Create 100% Doctor Payout Admission Fee Ledger Entry
-    const todayStr = getTodayLocalDateString();
+    // Create 100% Doctor Payout Admission Fee Ledger Entry using exact patient admit date
+    const entryDate = record.admitDate || getTodayLocalDateString();
     const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const dayEntries = allPatients.filter(p => p.date === todayStr);
+    const dayEntries = allPatients.filter(p => p.date === entryDate);
     const dailyIdx = dayEntries.length + 1;
 
     allPatients = allPatients.filter(p => p.admitId !== admitId);
@@ -2203,7 +2224,7 @@ function confirmNaeemAdmissionFeeCompletion(admitId, feeAmount) {
         id: `naeem-admit-${Date.now()}`,
         dailyIndex: dailyIdx,
         name: `${record.patientName} (Admission Fee)`,
-        date: todayStr,
+        date: entryDate,
         createdTime: timeStr,
         charges: feeAmount,
         split30: feeAmount, // 100% Doctor Payout
