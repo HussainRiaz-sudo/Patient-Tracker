@@ -2024,8 +2024,9 @@ function handleDeleteProcedure(procId) {
         `Are you sure you want to delete the scheduled procedure "${proc.procedureName}" for ${proc.patientName}?`,
         () => {
             cavalryProcedures = cavalryProcedures.filter(p => p.id !== procId);
+            allPatients = allPatients.filter(p => p.procedureId !== procId);
             saveState();
-            renderCavalryProcedures();
+            renderAll();
             showToast('Scheduled procedure deleted.', 'info');
         }
     );
@@ -2075,6 +2076,7 @@ function renderCavalryProcedures() {
 
     if (sortedProcedures.length === 0) {
         if (emptyState) emptyState.style.display = 'block';
+        updateUrgentProcedureStatus();
         return;
     }
 
@@ -2149,6 +2151,8 @@ function renderCavalryProcedures() {
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
         try { window.lucide.createIcons(); } catch (e) {}
     }
+
+    updateUrgentProcedureStatus();
 }
 
 // Naeem Surgical Admit & Procedures Feature Functions
