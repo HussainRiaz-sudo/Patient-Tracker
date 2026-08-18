@@ -1422,3 +1422,43 @@ tr:hover td {
     color: #86efac;
     border-color: #14532d;
 }
+
+/* High Priority Urgent Procedure Red Alert Styles */
+.tab-btn.urgent-high-priority {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+    border-color: #dc2626 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    animation: pulseRedAlert 2s infinite;
+}
+
+.tab-btn.urgent-high-priority i {
+    color: #ffffff !important;
+}
+
+@keyframes pulseRedAlert {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+.urgent-tab-badge {
+    background-color: #ffffff;
+    color: #ef4444;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    margin-left: 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.02em;
+}

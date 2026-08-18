@@ -433,6 +433,61 @@ function updateHospitalSwitcherUI() {
     }
 
     updateDynamicLabels();
+    updateUrgentProcedureStatus();
+}
+
+// High Priority Urgent Procedure Red Alert Handler
+function updateUrgentProcedureStatus() {
+    const tab4Btn = document.getElementById('tab4-btn');
+    const alertBanner = document.getElementById('cavalry-urgent-alert-banner');
+    const bannerText = document.getElementById('cavalry-urgent-banner-text');
+
+    if (!tab4Btn) return;
+
+    const todayStr = getTodayLocalDateString();
+    const todayMs = new Date(todayStr + 'T00:00:00').getTime();
+
+    // Calculate pending Cavalry procedures due today or overdue (high priority)
+    const pendingItems = cavalryProcedures.filter(p => p.status !== 'completed');
+    let urgentCount = 0;
+
+    pendingItems.forEach(p => {
+        const dueMs = new Date(p.dueDate + 'T00:00:00').getTime();
+        const diffDays = Math.ceil((dueMs - todayMs) / (1000 * 60 * 60 * 24));
+        if (diffDays <= 0) {
+            urgentCount++;
+        }
+    });
+
+    let badgeEl = document.getElementById('tab4-urgent-badge');
+
+    // ONLY when Cavalry Hospital is active and urgentCount > 0
+    if (activeHospital === 'cavalry' && urgentCount > 0) {
+        tab4Btn.classList.add('urgent-high-priority');
+        if (!badgeEl) {
+            badgeEl = document.createElement('span');
+            badgeEl.id = 'tab4-urgent-badge';
+            badgeEl.className = 'urgent-tab-badge';
+            tab4Btn.appendChild(badgeEl);
+        }
+        badgeEl.textContent = `${urgentCount} URGENT`;
+        badgeEl.style.display = 'inline-flex';
+
+        if (alertBanner) {
+            alertBanner.style.display = 'flex';
+            if (bannerText) {
+                bannerText.textContent = `You have ${urgentCount} high-priority procedure(s) scheduled for today or overdue.`;
+            }
+        }
+    } else {
+        tab4Btn.classList.remove('urgent-high-priority');
+        if (badgeEl) {
+            badgeEl.style.display = 'none';
+        }
+        if (alertBanner) {
+            alertBanner.style.display = 'none';
+        }
+    }
 }
 
 // Update Dynamic Split Labels across all sheets (ratio numbers hidden for privacy)
@@ -644,6 +699,18 @@ function setupEventListeners() {
             if (newInput) newInput.value = '';
             if (confInput) confInput.value = '';
             showToast('Security PIN changed successfully!', 'success');
+        });
+    }
+
+    // Urgent Procedure Alert Banner click listener
+    const cavalryAlertBanner = document.getElementById('cavalry-urgent-alert-banner');
+    if (cavalryAlertBanner) {
+        cavalryAlertBanner.addEventListener('click', () => {
+            const tab4Btn = document.getElementById('tab4-btn');
+            const sheet4 = document.getElementById('sheet4-content');
+            if (tab4Btn && sheet4) {
+                switchTab(tab4Btn, sheet4, renderCavalryProcedures);
+            }
         });
     }
 
@@ -1263,6 +1330,7 @@ function reindexLedgerForDate(dateStr) {
 function renderAll() {
     updateHospitalSwitcherUI();
     updateLockStatusUI();
+    updateUrgentProcedureStatus();
     renderDailyTable();
     renderDailyStats();
     renderLedgerTable();
