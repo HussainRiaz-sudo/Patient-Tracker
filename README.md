@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/HussainRiaz-sudo/HussainRiaz-sudo@main/assets/project-banners/tracker-banner.jpg" alt="Patient-Tracker Banner" width="100%" />
-</p>
-
 # 🩺 Dr Naila Patient Tracker & Financial Ledger
 
 A modern, responsive, offline-first web application designed for medical practitioners to manage patient intake across multiple clinical locations, automate location-specific revenue split calculations, archive records, generate itemized monthly PDF settlement reports, and analyze clinical trends.
