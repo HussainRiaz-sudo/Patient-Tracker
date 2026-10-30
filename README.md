@@ -1,4 +1,4 @@
-# 🩺 Dr Patient Tracker & Financial Ledger
+# 🩺 Patient Tracker & Financial Ledger
 
 A modern, responsive, offline-first web application designed for medical practitioners to manage patient intake across multiple clinical locations, automate location-specific revenue split calculations, archive records, generate itemized monthly PDF settlement reports, and analyze clinical trends.
 
@@ -46,7 +46,7 @@ A modern, responsive, offline-first web application designed for medical practit
   - **Hospital Share (PKR)** *(70% or 30%)*
 - **Summary Stat Cards & Verification Footer:**
   - Includes top summary cards for Total Volume, Gross Revenue, Doctor Payout, and Hospital Share.
-  - Features official signature verification blocks for **Dr. Naila (Practitioner)** and **Hospital Management**.
+  - Features official signature verification blocks for **Practitioner** and **Hospital Management**.
 - **Multi-Page Print Engine:** Styled with `@media print` CSS rules enabling seamless multi-page pagination with `page-break-inside: avoid` on table rows and signatures.
 
 ### 👤 5. Patient History & Clinical Record Modal
