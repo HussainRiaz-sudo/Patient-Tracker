@@ -1,4 +1,4 @@
-# 🩺 Dr Naila Patient Tracker & Financial Ledger
+# 🩺 Dr Patient Tracker & Financial Ledger
 
 A modern, responsive, offline-first web application designed for medical practitioners to manage patient intake across multiple clinical locations, automate location-specific revenue split calculations, archive records, generate itemized monthly PDF settlement reports, and analyze clinical trends.
 
